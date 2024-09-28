@@ -10,7 +10,7 @@
 
 int32_t main(void)
 {
-	uint8_t quit = 0, lmb_down = 0;
+	uint8_t quit = 0;
 
 	SDL_Init(SDL_INIT_VIDEO);
 
@@ -31,7 +31,6 @@ int32_t main(void)
 
 	mid_point_v2(pixels, &red, WIDTH / 2, HEIGHT / 2, WIDTH - 1, 0);
 
-	int32_t x, y;
 	while (!quit) {
 		SDL_UpdateTexture(texture, NULL, pixels,
 				  WIDTH * sizeof(pixels[0]));
@@ -40,21 +39,6 @@ int32_t main(void)
 			switch (event.type) {
 			case SDL_QUIT:
 				quit = 1;
-				break;
-			case SDL_MOUSEBUTTONUP:
-				if (event.button.button == SDL_BUTTON_LEFT)
-					lmb_down = 0;
-				break;
-			case SDL_MOUSEBUTTONDOWN:
-				if (event.button.button == SDL_BUTTON_LEFT)
-					lmb_down = 1;
-				break;
-			case SDL_MOUSEMOTION:
-				x = SDL_clamp(event.motion.x, 0, WIDTH);
-				y = SDL_clamp(event.motion.y, 0, HEIGHT);
-				if (lmb_down) {
-					pixels[POS_AT(x, y)] = 0;
-				}
 				break;
 			}
 		}
