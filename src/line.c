@@ -11,10 +11,10 @@ void mid_point_v1(uint32_t *pixels, Color *color, int32_t x0, int32_t y0,
 	int32_t d = 2 * dy - dx;
 
 	for (int32_t i = 0, x = x0, y = y0; i < dx; ++i, ++x) {
-        draw_pixel(pixels, x, y, color);
+		draw_pixel(pixels, x, y, color);
 
 		if (d > 0) {
-            --y;
+			--y;
 			d += 2 * (dy - dx);
 		} else {
 			d += 2 * dy;
@@ -27,8 +27,8 @@ void mid_point_v2(uint32_t *pixels, Color *color, int32_t x0, int32_t y0,
 {
 	int32_t dx = abs(x1 - x0);
 	int32_t dy = abs(y0 - y1);
-    int8_t sx = x1 - x0 >= 0 ? 1 : -1;
-    int8_t sy = y0 - y1 >= 0 ? 1 : -1;
+	int8_t sx = x1 - x0 >= 0 ? 1 : -1;
+	int8_t sy = y0 - y1 >= 0 ? 1 : -1;
 	int32_t d, x, y;
 	uint8_t swapped;
 
@@ -43,7 +43,7 @@ void mid_point_v2(uint32_t *pixels, Color *color, int32_t x0, int32_t y0,
 	d = 2 * dy - dx;
 	x = x0;
 	y = y0;
-    draw_pixel(pixels, x, y, color);
+	draw_pixel(pixels, x, y, color);
 
 	while (x != x1 || y != y1) {
 		if (d > 0) {
@@ -58,6 +58,6 @@ void mid_point_v2(uint32_t *pixels, Color *color, int32_t x0, int32_t y0,
 		else
 			x += sx;
 		d += 2 * dy;
-        draw_pixel(pixels, x, y, color);
+		draw_pixel(pixels, x, y, color);
 	}
 }

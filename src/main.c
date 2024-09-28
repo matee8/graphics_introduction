@@ -27,14 +27,9 @@ int32_t main(void)
 	uint32_t pixels[WIDTH * HEIGHT];
 	memset(pixels, 255, WIDTH * HEIGHT * sizeof(pixels[0]));
 
-    Color red = {
-        .alpha = 255,
-        .red = 0,
-        .green = 0,
-        .blue = 255
-    };
+	Color red = { .alpha = 255, .red = 0, .green = 0, .blue = 255 };
 
-    mid_point_v2(pixels, &red, WIDTH / 2, HEIGHT / 2, WIDTH - 1, 0);
+	mid_point_v2(pixels, &red, WIDTH / 2, HEIGHT / 2, WIDTH - 1, 0);
 
 	int32_t x, y;
 	while (!quit) {
