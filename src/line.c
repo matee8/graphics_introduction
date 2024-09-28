@@ -1,21 +1,63 @@
 #include "graphics/line.h"
 
+#include <stdlib.h>
+
 #include "graphics/pixel.h"
 
-void mid_point_v1(uint32_t *pixels, SDL_Color *color, uint32_t x0, uint32_t y0,
-		  uint32_t x1, uint32_t y1)
+void mid_point_v1(uint32_t *pixels, Color *color, int32_t x0, int32_t y0,
+		  int32_t x1, int32_t y1)
 {
-    uint32_t dy = y1 - y0, dx = x1 - x0;
-    uint32_t d = 2 * dy - dx;
-    uint32_t x = x1, y = y1;
-    for (uint32_t i = 0; i < dx; ++i) {
-        pixels[POS_AT(x, y)] = *(uint32_t*)color;
-        if (d > 0) {
-            y = y + 1;
-            d = d + 2 * (dy - dx);
-        } else {
-            d = d + 2 * dy;
-        }
-        ++x;
-    }
+	int32_t dy = y0 - y1, dx = x1 - x0;
+	int32_t d = 2 * dy - dx;
+
+	for (int32_t i = 0, x = x0, y = y0; i < dx; ++i, ++x) {
+        draw_pixel(pixels, x, y, color);
+
+		if (d > 0) {
+            --y;
+			d += 2 * (dy - dx);
+		} else {
+			d += 2 * dy;
+		}
+	}
+}
+
+void mid_point_v2(uint32_t *pixels, Color *color, int32_t x0, int32_t y0,
+		  int32_t x1, int32_t y1)
+{
+	int32_t dx = abs(x1 - x0);
+	int32_t dy = abs(y0 - y1);
+    int8_t sx = x1 - x0 >= 0 ? 1 : -1;
+    int8_t sy = y0 - y1 >= 0 ? 1 : -1;
+	int32_t d, x, y;
+	uint8_t swapped;
+
+	if (dx < dy) {
+		int32_t tmp = dx;
+		dx = dy;
+		dy = tmp;
+		swapped = 1;
+	} else {
+		swapped = 0;
+	}
+	d = 2 * dy - dx;
+	x = x0;
+	y = y0;
+    draw_pixel(pixels, x, y, color);
+
+	while (x != x1 || y != y1) {
+		if (d > 0) {
+			if (swapped)
+				x += sx;
+			else
+				y -= sy;
+			d -= 2 * dx;
+		}
+		if (swapped)
+			y -= sy;
+		else
+			x += sx;
+		d += 2 * dy;
+        draw_pixel(pixels, x, y, color);
+	}
 }
