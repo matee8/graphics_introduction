@@ -5,8 +5,8 @@
 
 #include <SDL2/SDL.h>
 
-#include "graphics/pixel.h"
 #include "graphics/line.h"
+#include "graphics/pixel.h"
 
 int32_t main(void)
 {
@@ -25,11 +25,12 @@ int32_t main(void)
 	SDL_Event event;
 
 	uint32_t pixels[WIDTH * HEIGHT];
-	memset(pixels, 255, WIDTH * HEIGHT * sizeof(pixels[0]));
+	memset(pixels, 255, (uint64_t)WIDTH * HEIGHT * sizeof(pixels[0]));
 
-	Color red = { .alpha = 255, .red = 0, .green = 0, .blue = 255 };
+	Color red = { .alpha = 255, .red = 255, .green = 0, .blue = 0 };
 
-	mid_point_v2(pixels, &red, WIDTH / 2, HEIGHT / 2, WIDTH - 1, 0);
+	mid_point_v1(pixels, &red, WIDTH / 2, HEIGHT / 2, WIDTH - 1, 0);
+    mid_point_v2(pixels, &red, WIDTH / 2, HEIGHT / 2, WIDTH - 1, HEIGHT - 1);
 
 	while (!quit) {
 		SDL_UpdateTexture(texture, NULL, pixels,
@@ -40,6 +41,8 @@ int32_t main(void)
 			case SDL_QUIT:
 				quit = 1;
 				break;
+            default:
+                break;
 			}
 		}
 

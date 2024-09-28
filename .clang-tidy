@@ -1,0 +1,5 @@
+Checks: '*,-fuchsia-*,-zircon-*,-abseil-*,-llvmlibc-*,-misc-include-cleaner,-readability-identifier-length,-bugprone-easily-swappable-parameters,-altera-id-dependent-backward-branch,-altera-unroll-loops,-google-readability-braces-around-statements,-hicpp-braces-around-statements,-readability-braces-around-statements,-cppcoreguidelines-avoid-magic-numbers,-readability-magic-numbers'
+CheckOptions: [{ key: misc-non-private-member-variables-in-classes, value: IgnoreClassesWithAllMemberVariablesBeingPublic }]
+WarningsAsErrors: '*'
+HeaderFilterRegex: '^./include/graphics/.*$'
+FormatStyle: none
