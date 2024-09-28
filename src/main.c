@@ -5,9 +5,8 @@
 
 #include <SDL2/SDL.h>
 
-#define WIDTH 640
-#define HEIGHT 480
-#define POS_AT(x, y) ((y) * WIDTH + (x))
+#include "graphics/pixel.h"
+#include "graphics/line.h"
 
 int32_t main(void)
 {
@@ -27,6 +26,15 @@ int32_t main(void)
 
 	uint32_t pixels[WIDTH * HEIGHT];
 	memset(pixels, 255, WIDTH * HEIGHT * sizeof(pixels[0]));
+
+    SDL_Color red = {
+        .r = 8,
+        .g = 8,
+        .b = 8,
+        .a = 8
+    };
+
+    mid_point_v1(pixels, &red, 0, 0, 100, 50);
 
 	uint32_t x, y;
 	while (!quit) {
