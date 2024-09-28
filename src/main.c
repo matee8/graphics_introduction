@@ -55,6 +55,8 @@ int32_t main(void)
 		SDL_RenderPresent(renderer);
 	}
 
+    SDL_DestroyTexture(texture);
+    SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 
