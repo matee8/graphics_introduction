@@ -1,10 +1,10 @@
-use graphics_introduction::{line::OneColored, App};
+use graphics_introduction::{line::OneColorLine, App};
 use sdl2::{event::Event, pixels::Color};
 
 fn main() {
     let mut app = App::build().unwrap();
 
-    let line = OneColored::new_45_deg(
+    let line = OneColorLine::new_45_deg(
         (
             graphics_introduction::WIDTH >> 1,
             graphics_introduction::HEIGHT >> 1,
@@ -14,7 +14,7 @@ fn main() {
         Color::RED,
     );
 
-    let line2 = OneColored::new_all_deg(
+    let line2 = OneColorLine::new_all_deg(
         (
             graphics_introduction::WIDTH >> 1,
             graphics_introduction::HEIGHT >> 1,

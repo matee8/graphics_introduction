@@ -8,7 +8,7 @@ use sdl2::{
 use thiserror::Error;
 
 #[derive(Debug, Clone)]
-pub struct OneColored {
+pub struct OneColorLine {
     color: Color,
     points: Vec<Point>,
 }
@@ -22,7 +22,7 @@ pub enum DrawError {
     Empty,
 }
 
-impl OneColored {
+impl OneColorLine {
     #[must_use]
     #[inline]
     pub fn new_45_deg(start: Point, end: Point, color: Color) -> Self {

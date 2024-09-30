@@ -1,5 +1,6 @@
 pub mod line;
 pub mod pixel;
+pub mod polygon;
 
 use sdl2::{
     pixels::Color,
