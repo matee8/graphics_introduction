@@ -89,7 +89,7 @@ impl OneColorLine {
         start: Point,
         end: Point,
         color: Color,
-        polygon: Polygon<'_, Self>,
+        polygon: &Polygon<'_, Self>,
     ) -> Self {
         todo!();
     }

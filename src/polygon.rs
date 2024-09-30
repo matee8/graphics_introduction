@@ -24,6 +24,7 @@ impl<'edges, R> From<&'edges [R]> for Polygon<'edges, R>
 where
     R: Renderable,
 {
+    #[inline]
     fn from(value: &'edges [R]) -> Self {
         Self::new(value)
     }

@@ -2,6 +2,11 @@ pub mod line;
 pub mod pixel;
 pub mod polygon;
 
+use core::{
+    fmt::{self, Debug, Formatter},
+    num::TryFromIntError,
+};
+
 use sdl2::{
     pixels::Color,
     rect::Point,
@@ -20,11 +25,23 @@ pub struct App {
     pub event_pump: EventPump,
 }
 
+impl Debug for App {
+    #[inline]
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("App")
+            .field("canvas", &"Canvas<Window>")
+            .field("event_pump", &"EventPump")
+            .finish()
+    }
+}
+
 #[non_exhaustive]
 #[derive(Debug, Error)]
 pub enum BuildError {
     #[error("{0}")]
     SdlInit(String),
+    #[error("Value was not a valid signed integer.")]
+    WidthHeightConversion(#[from] TryFromIntError),
     #[error("{0}")]
     VideoSubsystem(String),
     #[error(transparent)]
@@ -44,8 +61,8 @@ impl App {
         let window = vid_subsys
             .window(
                 "Introduction to computer graphics",
-                WIDTH as u32,
-                HEIGHT as u32,
+                u32::try_from(WIDTH)?,
+                u32::try_from(HEIGHT)?,
             )
             .position_centered()
             .build()?;

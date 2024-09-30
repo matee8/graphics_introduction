@@ -1,8 +1,13 @@
+use std::process;
+
 use graphics_introduction::{line::OneColorLine, App, Renderable};
 use sdl2::{event::Event, pixels::Color};
 
 fn main() {
-    let mut app = App::build().unwrap();
+    let mut app = App::build().unwrap_or_else(|_| {
+        eprintln!("Couldn't run app.");
+        process::exit(1);
+    });
 
     let line = OneColorLine::new_45_deg(
         (
@@ -35,8 +40,14 @@ fn main() {
             }
             app.canvas.clear();
 
-            line.draw(&mut app.canvas).unwrap();
-            line2.draw(&mut app.canvas).unwrap();
+            line.draw(&mut app.canvas).unwrap_or_else(|_| {
+                eprintln!("Couldn't draw line.");
+                process::exit(1);
+            });
+            line2.draw(&mut app.canvas).unwrap_or_else(|_| {
+                eprintln!("Couldn't draw line.");
+                process::exit(1);
+            });
 
             app.canvas.present();
         }
