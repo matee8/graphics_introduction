@@ -35,7 +35,19 @@ fn main() {
         Color::RED,
     );
 
-    let polygon = Polygon::new([line, line2]);
+    let square = Polygon::new(
+        &[
+            ((100, 100).into()),
+            ((100, 200).into()),
+            ((200, 200).into()),
+            ((200, 100).into()),
+        ],
+        Color::RED,
+    )
+    .unwrap_or_else(|_| {
+        eprintln!("Couldn't create square.");
+        process::exit(1);
+    });
 
     'running: loop {
         for event in app.event_pump.poll_iter() {
@@ -44,8 +56,16 @@ fn main() {
             }
             app.canvas.clear();
 
-            polygon.draw(&mut app.canvas).unwrap_or_else(|_| {
-                eprintln!("Couldn't draw polygon.");
+            line.draw(&mut app.canvas).unwrap_or_else(|_| {
+                eprintln!("Couldn't draw line.");
+                process::exit(1);
+            });
+            line2.draw(&mut app.canvas).unwrap_or_else(|_| {
+                eprintln!("Couldn't draw line.");
+                process::exit(1);
+            });
+            square.draw(&mut app.canvas).unwrap_or_else(|_| {
+                eprintln!("Couldn't draw square.");
                 process::exit(1);
             });
 

@@ -9,6 +9,8 @@ use thiserror::Error;
 
 use crate::{polygon::Polygon, Renderable};
 
+pub trait LineSegment {}
+
 #[derive(Debug, Clone)]
 pub struct OneColorLine {
     color: Color,
@@ -89,11 +91,13 @@ impl OneColorLine {
         start: Point,
         end: Point,
         color: Color,
-        polygon: &Polygon<Self, N>,
+        polygon: &Polygon<Self>,
     ) -> Self {
         todo!();
     }
 }
+
+impl LineSegment for OneColorLine {}
 
 #[non_exhaustive]
 #[derive(Debug, Error)]

@@ -1,53 +1,55 @@
-use core::array::TryFromSliceError;
+use sdl2::{
+    pixels::Color,
+    rect::Point,
+    render::{Canvas, RenderTarget},
+};
+use thiserror::Error;
 
-use sdl2::render::{Canvas, RenderTarget};
-
-use crate::Renderable;
+use crate::{
+    line::{LineSegment, OneColorLine},
+    Renderable,
+};
 
 #[derive(Debug, Clone)]
-pub struct Polygon<R, const N: usize>
+pub struct Polygon<R>
 where
-    R: Renderable,
+    R: Renderable + LineSegment,
 {
-    edges: [R; N],
+    edges: Vec<R>,
 }
 
-impl<R, const N: usize> Polygon<R, N>
-where
-    R: Renderable,
-{
-    #[inline]
-    pub const fn new(lines: [R; N]) -> Self {
-        Self { edges: lines }
-    }
-}
+#[non_exhaustive]
+#[derive(Debug, Error, Clone, Copy)]
+#[error("At least two points are required to create a polygon.")]
+pub struct NotEnoughPointsError;
 
-impl<R, const N: usize> From<[R; N]> for Polygon<R, N>
-where
-    R: Renderable,
-{
+impl Polygon<OneColorLine> {
     #[inline]
-    fn from(value: [R; N]) -> Self {
-        Self::new(value)
-    }
-}
+    pub fn new(
+        points: &[Point],
+        color: Color,
+    ) -> Result<Self, NotEnoughPointsError> {
+        if points.len() < 2 {
+            return Err(NotEnoughPointsError);
+        }
+        let mut edges: Vec<OneColorLine> = points
+            .windows(2)
+            .map(|value| OneColorLine::new_all_deg(value[0], value[1], color))
+            .collect();
 
-impl<R, const N: usize> TryFrom<&[R]> for Polygon<R, N>
-where
-    R: Renderable + Clone + Copy,
-{
-    type Error = TryFromSliceError;
+        edges.push(OneColorLine::new_all_deg(
+            points[points.len() - 1],
+            points[0],
+            color,
+        ));
 
-    #[inline]
-    fn try_from(value: &[R]) -> Result<Self, Self::Error> {
-        let edges = value.try_into()?;
         Ok(Self { edges })
     }
 }
 
-impl<R, const N: usize> Renderable for Polygon<R, N>
+impl<R> Renderable for Polygon<R>
 where
-    R: Renderable,
+    R: Renderable + LineSegment,
 {
     type Error = R::Error;
 
