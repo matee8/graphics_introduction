@@ -4,7 +4,8 @@ pub mod polygon;
 
 use sdl2::{
     pixels::Color,
-    render::Canvas,
+    rect::Point,
+    render::{Canvas, RenderTarget},
     video::{Window, WindowBuildError},
     EventPump, IntegerOrSdlError,
 };
@@ -58,5 +59,24 @@ impl App {
         let event_pump = sdl_ctx.event_pump().map_err(BuildError::EventPump)?;
 
         Ok(Self { canvas, event_pump })
+    }
+}
+
+pub trait Renderable {
+    type Error;
+    fn draw<T>(&self, canvas: &mut Canvas<T>) -> Result<(), Self::Error>
+    where
+        T: RenderTarget;
+}
+
+impl Renderable for Point {
+    type Error = String;
+
+    #[inline]
+    fn draw<T>(&self, canvas: &mut Canvas<T>) -> Result<(), Self::Error>
+    where
+        T: RenderTarget,
+    {
+        canvas.draw_point(*self)
     }
 }

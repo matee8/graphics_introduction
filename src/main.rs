@@ -1,4 +1,4 @@
-use graphics_introduction::{line::OneColorLine, App};
+use graphics_introduction::{line::OneColorLine, App, Renderable};
 use sdl2::{event::Event, pixels::Color};
 
 fn main() {

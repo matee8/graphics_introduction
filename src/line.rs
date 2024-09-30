@@ -7,19 +7,12 @@ use sdl2::{
 };
 use thiserror::Error;
 
+use crate::{polygon::Polygon, Renderable};
+
 #[derive(Debug, Clone)]
 pub struct OneColorLine {
     color: Color,
     points: Vec<Point>,
-}
-
-#[non_exhaustive]
-#[derive(Debug, Error)]
-pub enum DrawError {
-    #[error("{0}")]
-    Draw(String),
-    #[error("Line was empty.")]
-    Empty,
 }
 
 impl OneColorLine {
@@ -90,19 +83,45 @@ impl OneColorLine {
         Self { color, points }
     }
 
+    #[must_use]
     #[inline]
-    pub fn draw<T>(&self, canvas: &mut Canvas<T>) -> Result<(), DrawError>
+    pub fn new_inside_polygon(
+        start: Point,
+        end: Point,
+        color: Color,
+        polygon: Polygon<'_, Self>,
+    ) -> Self {
+        todo!();
+    }
+}
+
+#[non_exhaustive]
+#[derive(Debug, Error)]
+pub enum LineDrawError {
+    #[error("{0}")]
+    Draw(String),
+    #[error("Line was empty.")]
+    Empty,
+}
+
+impl Renderable for OneColorLine {
+    type Error = LineDrawError;
+
+    #[inline]
+    fn draw<T>(&self, canvas: &mut Canvas<T>) -> Result<(), Self::Error>
     where
         T: RenderTarget,
     {
         let old_color = canvas.draw_color();
 
         if self.points.is_empty() {
-            return Err(DrawError::Empty);
+            return Err(LineDrawError::Empty);
         }
 
         canvas.set_draw_color(self.color);
-        canvas.draw_points(&*self.points).map_err(DrawError::Draw)?;
+        canvas
+            .draw_points(&*self.points)
+            .map_err(LineDrawError::Draw)?;
 
         canvas.set_draw_color(old_color);
 

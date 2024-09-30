@@ -1,29 +1,38 @@
 use sdl2::render::{Canvas, RenderTarget};
 
-use crate::line::{DrawError, OneColorLine};
+use crate::Renderable;
 
-#[derive(Debug, Clone)]
-pub struct OneColorPolygon<'lines> {
-    lines: &'lines [OneColorLine],
+#[derive(Debug, Clone, Copy)]
+pub struct Polygon<'edges, R>
+where
+    R: Renderable,
+{
+    edges: &'edges [R],
 }
 
-impl<'lines> OneColorPolygon<'lines> {
+impl<'edges, R> Polygon<'edges, R>
+where
+    R: Renderable,
+{
     #[inline]
-    pub const fn new(
-        lines: &'lines [OneColorLine],
-    ) -> Self {
-        Self {
-            lines
-        }
+    pub const fn new(lines: &'edges [R]) -> Self {
+        Self { edges: lines }
     }
+}
+
+impl<R> Renderable for Polygon<'_, R>
+where
+    R: Renderable,
+{
+    type Error = R::Error;
 
     #[inline]
-    pub fn draw<T>(&self, canvas: &mut Canvas<T>) -> Result<(), DrawError>
+    fn draw<T>(&self, canvas: &mut Canvas<T>) -> Result<(), Self::Error>
     where
-        T: RenderTarget
+        T: RenderTarget,
     {
-        for line in self.lines {
-            line.draw(canvas)?;
+        for edge in self.edges {
+            edge.draw(canvas)?;
         }
 
         Ok(())

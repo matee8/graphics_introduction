@@ -4,22 +4,26 @@ use sdl2::{
     render::{Canvas, RenderTarget},
 };
 
+use crate::Renderable;
+
 #[derive(Debug, Clone, Copy)]
 pub struct Pixel {
     point: Point,
     color: Color,
 }
 
-impl Pixel {
+impl Renderable for Pixel {
+    type Error = String;
+
     #[inline]
-    pub fn draw_to_canvas<T>(
-        &self,
-        canvas: &mut Canvas<T>,
-    ) -> Result<(), String>
+    fn draw<T>(&self, canvas: &mut Canvas<T>) -> Result<(), Self::Error>
     where
         T: RenderTarget,
     {
+        let old_color = canvas.draw_color();
         canvas.set_draw_color(self.color);
-        canvas.draw_point(self.point)
+        canvas.draw_point(self.point)?;
+        canvas.set_draw_color(old_color);
+        Ok(())
     }
 }
