@@ -1,36 +1,51 @@
+use core::array::TryFromSliceError;
+
 use sdl2::render::{Canvas, RenderTarget};
 
 use crate::Renderable;
 
-#[derive(Debug, Clone, Copy)]
-pub struct Polygon<'edges, R>
+#[derive(Debug, Clone)]
+pub struct Polygon<R, const N: usize>
 where
     R: Renderable,
 {
-    edges: &'edges [R],
+    edges: [R; N],
 }
 
-impl<'edges, R> Polygon<'edges, R>
+impl<R, const N: usize> Polygon<R, N>
 where
     R: Renderable,
 {
     #[inline]
-    pub const fn new(lines: &'edges [R]) -> Self {
+    pub const fn new(lines: [R; N]) -> Self {
         Self { edges: lines }
     }
 }
 
-impl<'edges, R> From<&'edges [R]> for Polygon<'edges, R>
+impl<R, const N: usize> From<[R; N]> for Polygon<R, N>
 where
     R: Renderable,
 {
     #[inline]
-    fn from(value: &'edges [R]) -> Self {
+    fn from(value: [R; N]) -> Self {
         Self::new(value)
     }
 }
 
-impl<R> Renderable for Polygon<'_, R>
+impl<R, const N: usize> TryFrom<&[R]> for Polygon<R, N>
+where
+    R: Renderable + Clone + Copy,
+{
+    type Error = TryFromSliceError;
+
+    #[inline]
+    fn try_from(value: &[R]) -> Result<Self, Self::Error> {
+        let edges = value.try_into()?;
+        Ok(Self { edges })
+    }
+}
+
+impl<R, const N: usize> Renderable for Polygon<R, N>
 where
     R: Renderable,
 {
@@ -41,7 +56,7 @@ where
     where
         T: RenderTarget,
     {
-        for edge in self.edges {
+        for edge in &self.edges {
             edge.draw(canvas)?;
         }
 

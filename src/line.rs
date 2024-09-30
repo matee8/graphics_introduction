@@ -85,11 +85,11 @@ impl OneColorLine {
 
     #[must_use]
     #[inline]
-    pub fn new_inside_polygon(
+    pub fn new_inside_polygon<const N: usize>(
         start: Point,
         end: Point,
         color: Color,
-        polygon: &Polygon<'_, Self>,
+        polygon: &Polygon<Self, N>,
     ) -> Self {
         todo!();
     }
