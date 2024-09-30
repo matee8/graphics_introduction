@@ -20,6 +20,15 @@ where
     }
 }
 
+impl<'edges, R> From<&'edges [R]> for Polygon<'edges, R>
+where
+    R: Renderable,
+{
+    fn from(value: &'edges [R]) -> Self {
+        Self::new(value)
+    }
+}
+
 impl<R> Renderable for Polygon<'_, R>
 where
     R: Renderable,
