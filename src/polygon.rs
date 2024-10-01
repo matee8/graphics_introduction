@@ -5,10 +5,7 @@ use sdl2::{
 };
 use thiserror::Error;
 
-use crate::{
-    line::OneColorLine,
-    Renderable,
-};
+use crate::{line::OneColorLine, Renderable};
 
 #[derive(Debug, Clone)]
 pub struct OneColorPolygon {
@@ -19,6 +16,19 @@ pub struct OneColorPolygon {
 #[derive(Debug, Error, Clone, Copy)]
 #[error("At least two points are required to create a polygon.")]
 pub struct NotEnoughPointsError;
+
+#[non_exhaustive]
+#[derive(Debug, Error, Clone)]
+pub enum PolygonFromLinesError {
+    #[error("At least 1 line is required to create a polygon.")]
+    NotEnoughLines,
+    #[error("The lines are required to touch to create a polygon.")]
+    LinesDontTouch,
+    #[error(
+        "One color polygons can only be created from the same color lines."
+    )]
+    DifferentColor,
+}
 
 impl OneColorPolygon {
     #[inline]
@@ -31,7 +41,9 @@ impl OneColorPolygon {
         }
         let mut edges: Vec<OneColorLine> = points
             .windows(2)
-            .map(|value| OneColorLine::new_all_deg(value[0], value[1], color))
+            .map(|points| {
+                OneColorLine::new_all_deg(points[0], points[1], color)
+            })
             .collect();
 
         edges.push(OneColorLine::new_all_deg(
@@ -42,10 +54,42 @@ impl OneColorPolygon {
 
         Ok(Self { edges })
     }
+
+    #[inline]
+    pub fn new_from_lines(
+        lines: &[OneColorLine],
+    ) -> Result<Self, PolygonFromLinesError> {
+        if lines.is_empty() {
+            return Err(PolygonFromLinesError::NotEnoughLines);
+        }
+
+        if !lines
+            .windows(2)
+            .all(|lines| lines[0].last_point() == lines[1].first_point())
+        {
+            return Err(PolygonFromLinesError::LinesDontTouch);
+        }
+
+        if lines[lines.len() - 1].last_point() != lines[0].first_point() {
+            return Err(PolygonFromLinesError::LinesDontTouch);
+        }
+
+        if lines.first().is_some_and(|first| {
+            lines
+                .iter()
+                .skip(1)
+                .all(|elem| elem.color() == first.color())
+        }) {
+            return Err(PolygonFromLinesError::DifferentColor);
+        }
+
+        Ok(Self {
+            edges: Vec::from(lines),
+        })
+    }
 }
 
-impl Renderable for OneColorPolygon
-{
+impl Renderable for OneColorPolygon {
     type Error = <OneColorLine as Renderable>::Error;
 
     #[inline]

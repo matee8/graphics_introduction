@@ -58,7 +58,8 @@ impl OneColorLine {
         let mut decision = 2 * distance_y - distance_x;
         let mut x = start.x;
         let mut y = start.y;
-        let mut points = Vec::from([(x, y).into()]); while x != end.x || y != end.y {
+        let mut points = Vec::from([(x, y).into()]);
+        while x != end.x || y != end.y {
             if decision > 0 {
                 if swapped {
                     x += sign_x;
@@ -90,6 +91,21 @@ impl OneColorLine {
         polygon: &OneColorPolygon,
     ) -> Self {
         todo!();
+    }
+
+    #[inline]
+    pub(crate) fn first_point(&self) -> Point {
+        self.points[0]
+    }
+
+    #[inline]
+    pub(crate) fn last_point(&self) -> Point {
+        self.points[self.points.len() - 1]
+    }
+
+    #[inline]
+    pub(crate) const fn color(&self) -> Color {
+        self.color
     }
 }
 
