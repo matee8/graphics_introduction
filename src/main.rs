@@ -1,7 +1,7 @@
 use std::process;
 
 use graphics_introduction::{
-    line::OneColorLine, polygon::Polygon, App, Renderable,
+    line::OneColorLine, polygon::OneColorPolygon, App, Renderable,
 };
 use sdl2::{event::Event, pixels::Color};
 
@@ -35,7 +35,7 @@ fn main() {
         Color::RED,
     );
 
-    let square = Polygon::new(
+    let square = OneColorPolygon::new(
         &[
             ((100, 100).into()),
             ((100, 200).into()),

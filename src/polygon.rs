@@ -6,16 +6,13 @@ use sdl2::{
 use thiserror::Error;
 
 use crate::{
-    line::{LineSegment, OneColorLine},
+    line::OneColorLine,
     Renderable,
 };
 
 #[derive(Debug, Clone)]
-pub struct Polygon<R>
-where
-    R: Renderable + LineSegment,
-{
-    edges: Vec<R>,
+pub struct OneColorPolygon {
+    edges: Vec<OneColorLine>,
 }
 
 #[non_exhaustive]
@@ -23,7 +20,7 @@ where
 #[error("At least two points are required to create a polygon.")]
 pub struct NotEnoughPointsError;
 
-impl Polygon<OneColorLine> {
+impl OneColorPolygon {
     #[inline]
     pub fn new(
         points: &[Point],
@@ -47,11 +44,9 @@ impl Polygon<OneColorLine> {
     }
 }
 
-impl<R> Renderable for Polygon<R>
-where
-    R: Renderable + LineSegment,
+impl Renderable for OneColorPolygon
 {
-    type Error = R::Error;
+    type Error = <OneColorLine as Renderable>::Error;
 
     #[inline]
     fn draw<T>(&self, canvas: &mut Canvas<T>) -> Result<(), Self::Error>

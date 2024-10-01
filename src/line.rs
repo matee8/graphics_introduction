@@ -7,9 +7,7 @@ use sdl2::{
 };
 use thiserror::Error;
 
-use crate::{polygon::Polygon, Renderable};
-
-pub trait LineSegment {}
+use crate::{polygon::OneColorPolygon, Renderable};
 
 #[derive(Debug, Clone)]
 pub struct OneColorLine {
@@ -60,9 +58,7 @@ impl OneColorLine {
         let mut decision = 2 * distance_y - distance_x;
         let mut x = start.x;
         let mut y = start.y;
-        let mut points = Vec::from([(x, y).into()]);
-
-        while x != end.x || y != end.y {
+        let mut points = Vec::from([(x, y).into()]); while x != end.x || y != end.y {
             if decision > 0 {
                 if swapped {
                     x += sign_x;
@@ -91,13 +87,11 @@ impl OneColorLine {
         start: Point,
         end: Point,
         color: Color,
-        polygon: &Polygon<Self>,
+        polygon: &OneColorPolygon,
     ) -> Self {
         todo!();
     }
 }
-
-impl LineSegment for OneColorLine {}
 
 #[non_exhaustive]
 #[derive(Debug, Error)]
