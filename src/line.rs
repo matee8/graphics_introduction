@@ -4,6 +4,11 @@ use thiserror::Error;
 
 use crate::{polygon::OneColorPolygon, Color, Point, Renderable, Renderer};
 
+pub trait LineSegment {
+    fn first_point(&self) -> Point;
+    fn last_point(&self) -> Point;
+}
+
 #[derive(Debug, Clone)]
 pub struct OneColorLine {
     color: Color,
@@ -89,16 +94,6 @@ impl OneColorLine {
     }
 
     #[inline]
-    pub(crate) fn first_point(&self) -> Point {
-        self.points[0]
-    }
-
-    #[inline]
-    pub(crate) fn last_point(&self) -> Point {
-        self.points[self.points.len() - 1]
-    }
-
-    #[inline]
     pub(crate) const fn color(&self) -> Color {
         self.color
     }
@@ -142,4 +137,17 @@ where
 
         Ok(())
     }
+}
+
+impl LineSegment for OneColorLine {
+    #[inline]
+    fn first_point(&self) -> Point {
+        self.points[0]
+    }
+
+    #[inline]
+    fn last_point(&self) -> Point {
+        self.points[self.points.len() - 1]
+    }
+
 }

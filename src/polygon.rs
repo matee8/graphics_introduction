@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::{line::OneColorLine, Color, Point, Renderable, Renderer};
+use crate::{line::{OneColorLine, LineSegment}, Color, Point, Renderable, Renderer};
 
 #[derive(Debug, Clone)]
 pub struct OneColorPolygon {
