@@ -42,20 +42,6 @@ fn main() {
     canvas.clear();
     canvas.present();
 
-    let square = Polygon::new(
-        &[
-            ((100, 100).into()),
-            ((100, 200).into()),
-            ((200, 200).into()),
-            ((200, 100).into()),
-        ],
-        Color::RED,
-    )
-    .unwrap_or_else(|_| {
-        eprintln!("Invalid positions given for square polygon.");
-        process::exit(1);
-    });
-
     'running: loop {
         for event in event_pump.poll_iter() {
             if let Event::Quit { .. } = event {
@@ -68,7 +54,6 @@ fn main() {
                     eprintln!("Drawing canvas has invalid sizes.");
                     process::exit(1);
                 });
-
             let canvas_width: i32 =
                 canvas_width.try_into().unwrap_or_else(|_| {
                     eprintln!("Invalid window width.");
@@ -85,19 +70,32 @@ fn main() {
                 (canvas_width - 1, 0).into(),
                 Color::RED,
             );
+            line.render(&mut canvas).unwrap_or_else(|_| {
+                eprintln!("Couldn't draw line.");
+                process::exit(1);
+            });
 
             let line2 = OneColorLine::new(
                 (canvas_width >> 1, canvas_height >> 1).into(),
                 (canvas_width - 1, canvas_height - 1).into(),
                 Color::RED,
             );
-
-            line.render(&mut canvas).unwrap_or_else(|_| {
+            line2.render(&mut canvas).unwrap_or_else(|_| {
                 eprintln!("Couldn't draw line.");
                 process::exit(1);
             });
-            line2.render(&mut canvas).unwrap_or_else(|_| {
-                eprintln!("Couldn't draw line.");
+
+            let square = Polygon::new(
+                &[
+                    ((canvas_width >> 3, canvas_height >> 3).into()),
+                    ((canvas_width >> 3, canvas_height >> 2).into()),
+                    ((canvas_width >> 2, canvas_height >> 2).into()),
+                    ((canvas_width >> 2, canvas_height >> 3).into()),
+                ],
+                Color::RED,
+            )
+            .unwrap_or_else(|_| {
+                eprintln!("Invalid positions given for square polygon.");
                 process::exit(1);
             });
             square.render(&mut canvas).unwrap_or_else(|_| {
