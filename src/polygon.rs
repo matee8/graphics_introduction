@@ -1,11 +1,6 @@
-use sdl2::{
-    pixels::Color,
-    rect::Point,
-    render::{Canvas, RenderTarget},
-};
 use thiserror::Error;
 
-use crate::{line::OneColorLine, Renderable};
+use crate::{line::OneColorLine, Color, Point, Renderable, Renderer};
 
 #[derive(Debug, Clone)]
 pub struct OneColorPolygon {
@@ -41,12 +36,10 @@ impl OneColorPolygon {
         }
         let mut edges: Vec<OneColorLine> = points
             .windows(2)
-            .map(|points| {
-                OneColorLine::new_all_deg(points[0], points[1], color)
-            })
+            .map(|points| OneColorLine::new(points[0], points[1], color))
             .collect();
 
-        edges.push(OneColorLine::new_all_deg(
+        edges.push(OneColorLine::new(
             points[points.len() - 1],
             points[0],
             color,
@@ -89,16 +82,16 @@ impl OneColorPolygon {
     }
 }
 
-impl Renderable for OneColorPolygon {
-    type Error = <OneColorLine as Renderable>::Error;
+impl<T> Renderable<T> for OneColorPolygon
+where
+    T: Renderer,
+{
+    type Error = <OneColorLine as Renderable<T>>::Error;
 
     #[inline]
-    fn draw<T>(&self, canvas: &mut Canvas<T>) -> Result<(), Self::Error>
-    where
-        T: RenderTarget,
-    {
+    fn render(&self, renderer: &mut T) -> Result<(), Self::Error> {
         for edge in &self.edges {
-            edge.draw(canvas)?;
+            edge.render(renderer)?;
         }
 
         Ok(())

@@ -1,13 +1,8 @@
 use core::mem;
 
-use sdl2::{
-    pixels::Color,
-    rect::Point,
-    render::{Canvas, RenderTarget},
-};
 use thiserror::Error;
 
-use crate::{polygon::OneColorPolygon, Renderable};
+use crate::{polygon::OneColorPolygon, Color, Point, Renderable, Renderer};
 
 #[derive(Debug, Clone)]
 pub struct OneColorLine {
@@ -44,7 +39,7 @@ impl OneColorLine {
 
     #[must_use]
     #[inline]
-    pub fn new_all_deg(start: Point, end: Point, color: Color) -> Self {
+    pub fn new(start: Point, end: Point, color: Color) -> Self {
         let mut distance_x = (end.x - start.x).abs();
         let mut distance_y = (start.y - end.y).abs();
         let sign_x = (end.x - start.x).signum();
@@ -111,33 +106,39 @@ impl OneColorLine {
 
 #[non_exhaustive]
 #[derive(Debug, Error)]
-pub enum LineDrawError {
-    #[error("{0}")]
-    Draw(String),
+pub enum LineDrawError<T>
+where
+    T: Renderer,
+{
+    #[error("Couldn't draw the line.")]
+    Draw(T::DrawError),
     #[error("Line was empty.")]
     Empty,
 }
 
-impl Renderable for OneColorLine {
-    type Error = LineDrawError;
+impl<T> Renderable<T> for OneColorLine
+where
+    T: Renderer,
+{
+    type Error = LineDrawError<T>;
 
     #[inline]
-    fn draw<T>(&self, canvas: &mut Canvas<T>) -> Result<(), Self::Error>
+    fn render(&self, renderer: &mut T) -> Result<(), Self::Error>
     where
-        T: RenderTarget,
+        T: Renderer,
     {
-        let old_color = canvas.draw_color();
+        let old_color = renderer.current_color();
 
         if self.points.is_empty() {
             return Err(LineDrawError::Empty);
         }
 
-        canvas.set_draw_color(self.color);
-        canvas
-            .draw_points(&*self.points)
+        renderer.set_color(self.color);
+        renderer
+            .draw_points(&self.points)
             .map_err(LineDrawError::Draw)?;
 
-        canvas.set_draw_color(old_color);
+        renderer.set_color(old_color);
 
         Ok(())
     }

@@ -25,6 +25,10 @@ panic = "abort"
 sdl2 = "0.37.0"
 thiserror = "1.0.64"
 
+[features]
+default = ["sdl2"]
+sdl2 = []
+
 [lints.rust]
 dead-code = "allow"
 unreachable-patterns = "allow"
@@ -88,3 +92,5 @@ min_ident_chars = "allow"
 missing_asserts_for_indexing = "allow"
 indexing_slicing = "allow"
 shadow_unrelated = "allow"
+absolute_paths = "allow"
+shadow_reuse = "allow"
