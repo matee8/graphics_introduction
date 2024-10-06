@@ -5,8 +5,8 @@ use graphics_introduction::{
 };
 use sdl2::event::Event;
 
-const WIDTH: i32 = 640;
-const HEIGHT: i32 = 480;
+const WIDTH: u32 = 640;
+const HEIGHT: u32 = 480;
 
 fn main() {
     let sdl_ctx = sdl2::init().unwrap_or_else(|_| {
@@ -19,20 +19,8 @@ fn main() {
         process::exit(1);
     });
 
-    let window_width: u32 = WIDTH.try_into().unwrap_or_else(|_| {
-        eprintln!("Invalid window width.");
-        process::exit(1);
-    });
-    let window_height: u32 = HEIGHT.try_into().unwrap_or_else(|_| {
-        eprintln!("Invalid window height.");
-        process::exit(1);
-    });
     let window = vid_subsys
-        .window(
-            "Introduction to computer graphics",
-            window_width,
-            window_height,
-        )
+        .window("Introduction to computer graphics", WIDTH, HEIGHT)
         .resizable()
         .build()
         .unwrap_or_else(|_| {
@@ -54,18 +42,6 @@ fn main() {
     canvas.clear();
     canvas.present();
 
-    let line = OneColorLine::new_45_deg(
-        (WIDTH >> 1, HEIGHT >> 1).into(),
-        (WIDTH - 1, 0).into(),
-        Color::RED,
-    );
-
-    let line2 = OneColorLine::new(
-        (WIDTH >> 1, HEIGHT >> 1).into(),
-        (WIDTH - 1, HEIGHT - 1).into(),
-        Color::RED,
-    );
-
     let square = OneColorPolygon::new(
         &[
             ((100, 100).into()),
@@ -86,6 +62,35 @@ fn main() {
                 break 'running;
             }
             canvas.clear();
+
+            let (canvas_width, canvas_height) =
+                canvas.output_size().unwrap_or_else(|_| {
+                    eprintln!("Drawing canvas has invalid sizes.");
+                    process::exit(1);
+                });
+
+            let canvas_width: i32 =
+                canvas_width.try_into().unwrap_or_else(|_| {
+                    eprintln!("Invalid window width.");
+                    process::exit(1);
+                });
+            let canvas_height: i32 =
+                canvas_height.try_into().unwrap_or_else(|_| {
+                    eprintln!("Invalid window height.");
+                    process::exit(1);
+                });
+
+            let line = OneColorLine::new_45_deg(
+                (canvas_width >> 1, canvas_height >> 1).into(),
+                (canvas_width - 1, 0).into(),
+                Color::RED,
+            );
+
+            let line2 = OneColorLine::new(
+                (canvas_width >> 1, canvas_height >> 1).into(),
+                (canvas_width - 1, canvas_height - 1).into(),
+                Color::RED,
+            );
 
             line.render(&mut canvas).unwrap_or_else(|_| {
                 eprintln!("Couldn't draw line.");

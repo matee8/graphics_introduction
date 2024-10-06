@@ -41,6 +41,17 @@ impl From<(i32, i32)> for Point {
     }
 }
 
+impl TryFrom<(u32, u32)> for Point {
+    type Error = <i32 as TryFrom<u32>>::Error;
+
+    #[inline]
+    fn try_from(value: (u32, u32)) -> Result<Self, Self::Error> {
+        let x = value.0.try_into()?;
+        let y = value.1.try_into()?;
+        Ok(Self::new(x, y))
+    }
+}
+
 impl From<Point> for (i32, i32) {
     #[inline]
     fn from(value: Point) -> Self {
@@ -103,6 +114,7 @@ impl From<(u8, u8, u8)> for Color {
 pub trait Renderer {
     type DrawError;
     fn draw_point(&mut self, point: Point) -> Result<(), Self::DrawError>;
+    #[inline]
     fn draw_points(&mut self, points: &[Point]) -> Result<(), Self::DrawError> {
         for point in points {
             self.draw_point(*point)?;
