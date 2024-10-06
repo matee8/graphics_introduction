@@ -1,10 +1,20 @@
+use core::marker::PhantomData;
+
 use thiserror::Error;
 
-use crate::{line::{OneColorLine, LineSegment}, Color, Point, Renderable, Renderer};
+use crate::{
+    line::{LineSegment, OneColorLine},
+    Color, Point, Renderable, Renderer,
+};
 
-#[derive(Debug, Clone)]
-pub struct OneColorPolygon {
-    edges: Vec<OneColorLine>,
+#[derive(Debug)]
+pub struct Polygon<T, R>
+where
+    T: LineSegment + Renderable<R>,
+    R: Renderer,
+{
+    edges: Vec<T>,
+    _renderer: PhantomData<R>,
 }
 
 #[non_exhaustive]
@@ -25,7 +35,10 @@ pub enum PolygonFromLinesError {
     DifferentColor,
 }
 
-impl OneColorPolygon {
+impl<R> Polygon<OneColorLine, R>
+where
+    R: Renderer,
+{
     #[inline]
     pub fn new(
         points: &[Point],
@@ -45,7 +58,10 @@ impl OneColorPolygon {
             color,
         ));
 
-        Ok(Self { edges })
+        Ok(Self {
+            edges,
+            _renderer: PhantomData,
+        })
     }
 
     #[inline]
@@ -78,18 +94,20 @@ impl OneColorPolygon {
 
         Ok(Self {
             edges: Vec::from(lines),
+            _renderer: PhantomData,
         })
     }
 }
 
-impl<T> Renderable<T> for OneColorPolygon
+impl<T, R> Renderable<R> for Polygon<T, R>
 where
-    T: Renderer,
+    T: LineSegment + Renderable<R>,
+    R: Renderer,
 {
-    type Error = <OneColorLine as Renderable<T>>::Error;
+    type Error = T::Error;
 
     #[inline]
-    fn render(&self, renderer: &mut T) -> Result<(), Self::Error> {
+    fn render(&self, renderer: &mut R) -> Result<(), Self::Error> {
         for edge in &self.edges {
             edge.render(renderer)?;
         }

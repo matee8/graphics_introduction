@@ -2,7 +2,7 @@ use core::mem;
 
 use thiserror::Error;
 
-use crate::{polygon::OneColorPolygon, Color, Point, Renderable, Renderer};
+use crate::{polygon::Polygon, Color, Point, Renderable, Renderer};
 
 pub trait LineSegment {
     fn first_point(&self) -> Point;
@@ -84,12 +84,16 @@ impl OneColorLine {
 
     #[must_use]
     #[inline]
-    pub fn new_inside_polygon<const N: usize>(
+    pub fn new_inside_polygon<T, R>(
         start: Point,
         end: Point,
         color: Color,
-        polygon: &OneColorPolygon,
-    ) -> Self {
+        polygon: &Polygon<T, R>,
+    ) -> Self
+    where
+        T: LineSegment + Renderable<R>,
+        R: Renderer,
+    {
         todo!();
     }
 
@@ -149,5 +153,4 @@ impl LineSegment for OneColorLine {
     fn last_point(&self) -> Point {
         self.points[self.points.len() - 1]
     }
-
 }
