@@ -90,17 +90,29 @@ impl OneColorLine {
         end: Point,
         color: Color,
         polygon: &Polygon<T, R>,
-    ) -> Self
+    ) -> Option<Self>
     where
         T: LineSegment + Renderable<R>,
         R: Renderer,
     {
-        todo!();
-    }
+        let (a, b, c) = (
+            end.y - start.y,
+            start.x - end.x,
+            end.x * start.y - start.x * end.y,
+        );
 
-    #[inline]
-    pub(crate) const fn color(&self) -> Color {
-        self.color
+        let mut signums = Vec::with_capacity(polygon.edges().len());
+        for point in polygon.points() {
+            signums.push((a * point.x + b * point.y + c).signum());
+        }
+
+        if !signums.first().is_some_and(|first| {
+            signums.iter().skip(1).all(|elem| first == elem)
+        }) {
+            return None;
+        }
+
+        todo!();
     }
 }
 
@@ -158,5 +170,61 @@ impl LineSegment for OneColorLine {
     #[inline]
     fn last_point(&self) -> Point {
         self.points[self.points.len() - 1]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{line::OneColorLine, polygon::Polygon, Color, Renderer};
+
+    struct MockRenderer;
+
+    impl Renderer for MockRenderer {
+        type DrawError = ();
+
+        fn set_color(&mut self, color: Color) {
+            unimplemented!()
+        }
+
+        fn draw_point(
+            &mut self,
+            point: crate::Point,
+        ) -> Result<(), Self::DrawError> {
+            unimplemented!()
+        }
+
+        fn draw_points(
+            &mut self,
+            points: &[crate::Point],
+        ) -> Result<(), Self::DrawError> {
+            unimplemented!()
+        }
+
+        fn current_color(&self) -> Color {
+            Color::BLACK
+        }
+    }
+
+    #[test]
+    fn line_not_inside_polygon_is_none() {
+        let square: Polygon<_, MockRenderer> = Polygon::new(
+            &[
+                ((100, 100).into()),
+                ((100, 200).into()),
+                ((200, 200).into()),
+                ((200, 100).into()),
+            ],
+            Color::RED,
+        )
+        .unwrap();
+
+        let line_inside_square = OneColorLine::new_inside_polygon(
+            (300, 300).into(),
+            (400, 400).into(),
+            Color::RED,
+            &square,
+        );
+
+        assert!(line_inside_square.is_none());
     }
 }
