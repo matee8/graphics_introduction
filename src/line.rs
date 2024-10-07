@@ -5,6 +5,7 @@ use thiserror::Error;
 use crate::{polygon::Polygon, Color, Point, Renderable, Renderer};
 
 pub trait LineSegment {
+    fn points(&self) -> &[Point];
     fn first_point(&self) -> Point;
     fn last_point(&self) -> Point;
 }
@@ -144,6 +145,11 @@ where
 }
 
 impl LineSegment for OneColorLine {
+    #[inline]
+    fn points(&self) -> &[Point] {
+        &self.points
+    }
+
     #[inline]
     fn first_point(&self) -> Point {
         self.points[0]

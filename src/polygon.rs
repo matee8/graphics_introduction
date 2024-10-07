@@ -88,6 +88,18 @@ where
             _renderer: PhantomData,
         })
     }
+
+    #[must_use]
+    #[inline]
+    pub fn edges(&self) -> &[T] {
+        &self.edges
+    }
+
+    #[must_use]
+    #[inline]
+    pub fn points(&self) -> Vec<Point> {
+        self.edges().iter().map(LineSegment::first_point).collect()
+    }
 }
 
 impl<T, R> Renderable<R> for Polygon<T, R>
