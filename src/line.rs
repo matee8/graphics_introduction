@@ -117,31 +117,69 @@ impl OneColorLine {
         for point in polygon.points() {
             signums.push((a * point.x + b * point.y + c).signum());
         }
+        dbg!(&signums);
 
-        if !signums.first().is_some_and(|first| {
+        if signums.first().is_some_and(|first| {
             signums.iter().skip(1).all(|elem| first == elem)
         }) {
             return None;
         }
 
-        let intersections: Vec<Point> = polygon
-            .edges()
-            .iter()
-            .map(|edge| {
-                let (edge_a, edge_b, edge_c) = edge.general_form();
-                let determinant = a * edge_b - edge_a * b;
-                if determinant.abs() < 1 {
-                    None
+        // let mut intersections: Vec<Point> = polygon
+        //     .edges()
+        //     .iter()
+        //     .enumerate()
+        //     .map(|(i, edge)| {
+        //         let (edge_a, edge_b, edge_c) = edge.general_form();
+        //         let determinant = a * edge_b - edge_a * b;
+        //         dbg!(determinant);
+        //         if determinant.abs() < 1 {
+        //             None
+        //         } else {
+        //             Some(Point::new(
+        //                 (edge_b * c - b * edge_c) / determinant,
+        //                 (a * edge_c - edge_a * c) / determinant,
+        //             ))
+        //         }
+        //     })
+        //     .collect::<Option<_>>()?;
+
+        let mut intersections: Vec<Point> = signums
+            .windows(2)
+            .zip(polygon.edges())
+            .map(|(signum, edge)| {
+                dbg!(&signum);
+                if signum[0] != signum[1] {
+                    println!("got here");
+                    let (edge_a, edge_b, edge_c) = edge.general_form();
+                    let determinant = a * edge_b - edge_a * b;
+                    dbg!(determinant);
+                    if determinant.abs() < 1 {
+                        None
+                    } else {
+                        Some(Point::new(
+                            (edge_b * c - b * edge_c) / determinant,
+                            (a * edge_c - edge_a * c) / determinant,
+                        ))
+                    }
                 } else {
-                    Some(Point::new(
-                        (edge_b * c - b * edge_c) / determinant,
-                        (a * edge_c - edge_a * c) / determinant,
-                    ))
+                    None
                 }
             })
+            .filter(Option::is_some)
             .collect::<Option<_>>()?;
 
-        todo!()
+        dbg!(&intersections);
+
+        if intersections.len() == 2 {
+            dbg!(&intersections);
+            intersections.sort_by(|p1, p2| {
+                p2.x.cmp(&p1.x)
+            });
+            Some(OneColorLine::new(intersections[0], intersections[1], color))
+        } else {
+            None
+        }
     }
 }
 
