@@ -6,8 +6,20 @@ use crate::{polygon::Polygon, Color, Point, Renderable, Renderer};
 
 pub trait LineSegment {
     fn points(&self) -> &[Point];
+
     fn first_point(&self) -> Point;
+
     fn last_point(&self) -> Point;
+
+    #[inline]
+    fn general_form(&self) -> (i32, i32, i32) {
+        (
+            self.last_point().y - self.first_point().y,
+            self.first_point().x - self.last_point().x,
+            self.last_point().x * self.first_point().y
+                - self.first_point().x * self.last_point().y,
+        )
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -112,7 +124,24 @@ impl OneColorLine {
             return None;
         }
 
-        todo!();
+        let intersections: Vec<Point> = polygon
+            .edges()
+            .iter()
+            .map(|edge| {
+                let (edge_a, edge_b, edge_c) = edge.general_form();
+                let determinant = a * edge_b - edge_a * b;
+                if determinant.abs() < 1 {
+                    None
+                } else {
+                    Some(Point::new(
+                        (edge_b * c - b * edge_c) / determinant,
+                        (a * edge_c - edge_a * c) / determinant,
+                    ))
+                }
+            })
+            .collect::<Option<_>>()?;
+
+        todo!()
     }
 }
 
@@ -201,7 +230,7 @@ mod tests {
         }
 
         fn current_color(&self) -> Color {
-            Color::BLACK
+            unimplemented!()
         }
     }
 
