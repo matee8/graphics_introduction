@@ -4,22 +4,42 @@ use thiserror::Error;
 
 use crate::{polygon::Polygon, Color, Point, Renderable, Renderer};
 
-pub trait LineSegment {
-    fn points(&self) -> &[Point];
+#[derive(Debug, Clone, Copy)]
+pub struct LineGeneralForm {
+    a: i32,
+    b: i32,
+    c: i32,
+}
 
-    fn first_point(&self) -> Point;
-
-    fn last_point(&self) -> Point;
-
+impl LineGeneralForm {
+    #[must_use]
     #[inline]
-    fn general_form(&self) -> (i32, i32, i32) {
-        (
-            self.last_point().y - self.first_point().y,
-            self.first_point().x - self.last_point().x,
-            self.last_point().x * self.first_point().y
-                - self.first_point().x * self.last_point().y,
+    pub const fn new(a: i32, b: i32, c: i32) -> Self {
+        Self { a, b, c }
+    }
+
+    #[must_use]
+    #[inline]
+    pub const fn new_from_points(start: Point, end: Point) -> Self {
+        Self::new(
+            end.y - start.y,
+            start.x - end.x,
+            end.x * start.y - start.x * end.y,
         )
     }
+}
+
+impl From<(Point, Point)> for LineGeneralForm {
+    #[inline]
+    fn from(value: (Point, Point)) -> Self {
+        Self::new_from_points(value.0, value.1)
+    }
+}
+
+pub trait LineSegment: Into<LineGeneralForm> {
+    fn points(&self) -> &[Point];
+    fn first_point(&self) -> Point;
+    fn last_point(&self) -> Point;
 }
 
 #[derive(Debug, Clone)]
@@ -107,17 +127,18 @@ impl OneColorLine {
         T: LineSegment + Renderable<R>,
         R: Renderer,
     {
-        let (a, b, c) = (
-            end.y - start.y,
-            start.x - end.x,
-            end.x * start.y - start.x * end.y,
-        );
+        let general_form = LineGeneralForm::new_from_points(start, end);
 
-        let signums: Vec<i32> = polygon.points().iter().map(|point| {
-            (a * point.x + b * point.y + c).signum()
-        }).collect();
-
-        dbg!(&signums);
+        let signums: Vec<i32> = polygon
+            .points()
+            .iter()
+            .map(|point| {
+                (general_form.a * point.x
+                    + general_form.b * point.y
+                    + general_form.c)
+                    .signum()
+            })
+            .collect();
 
         if signums.first().is_some_and(|first| {
             signums.iter().skip(1).all(|elem| first == elem)
@@ -126,6 +147,18 @@ impl OneColorLine {
         }
 
         todo!()
+    }
+}
+
+impl From<OneColorLine> for LineGeneralForm {
+    #[inline]
+    fn from(value: OneColorLine) -> Self {
+        Self::new(
+            value.last_point().y - value.first_point().y,
+            value.first_point().x - value.last_point().x,
+            value.last_point().x * value.first_point().y
+                - value.first_point().x * value.last_point().y,
+        )
     }
 }
 
@@ -232,8 +265,8 @@ mod tests {
         .unwrap();
 
         let line_inside_square = OneColorLine::new_inside_polygon(
-            (300, 300).into(),
-            (400, 400).into(),
+            (500, 500).into(),
+            (500, 600).into(),
             Color::RED,
             &square,
         );
