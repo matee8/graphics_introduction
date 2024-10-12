@@ -1,4 +1,4 @@
-use core::mem;
+use core::{mem, iter};
 
 use thiserror::Error;
 
@@ -153,9 +153,13 @@ impl OneColorLine {
             return None;
         }
 
+        dbg!(signums.len());
+        dbg!(polygon.edges().len());
+
         let intersections: Vec<Point> = signums
             .windows(2)
             .map(|signum| (signum[0], signum[1]))
+            .chain(iter::once((signums[signums.len() - 1], signums[0])))
             .zip(polygon.edges())
             .filter(|&(signum, _)| (signum.0 != signum.1))
             .map(|(_, edge)| {
@@ -176,6 +180,8 @@ impl OneColorLine {
                 Point::new(x, y)
             })
             .collect();
+
+        dbg!(intersections.len());
 
         if intersections.len() != 2 {
             return None;
@@ -418,5 +424,31 @@ mod tests {
         let line_inside_square = line_inside_square.unwrap();
         assert_eq!(line_inside_square.first_point(), p1);
         assert_eq!(line_inside_square.last_point(), p2);
+    }
+
+    #[test]
+    fn line_vertically_cut_works() {
+        let square: Polygon<_, MockRenderer> = Polygon::new(
+            &[
+                ((100, 100).into()),
+                ((100, 200).into()),
+                ((200, 200).into()),
+                ((200, 100).into()),
+            ],
+            Color::RED,
+        )
+        .unwrap();
+
+        let line_inside_square = OneColorLine::new_inside_polygon(
+            (150, 50).into(),
+            (150, 250).into(),
+            Color::RED,
+            &square,
+        );
+
+        assert!(line_inside_square.is_some());
+        let line_inside_square = line_inside_square.unwrap();
+        assert_eq!(line_inside_square.first_point(), Point::new(150, 200));
+        assert_eq!(line_inside_square.last_point(), Point::new(150, 100));
     }
 }

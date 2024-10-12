@@ -84,8 +84,8 @@ fn main() {
             });
 
             let line_inside_square = OneColorLine::new_inside_polygon(
-                (0, canvas_height >> 2).into(),
-                (canvas_width, canvas_height >> 2).into(),
+                (canvas_width >> 2, 0).into(),
+                (canvas_width >> 2, canvas_height).into(),
                 Color::RED,
                 &square,
             )
