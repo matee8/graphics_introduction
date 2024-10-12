@@ -36,7 +36,7 @@ impl From<(Point, Point)> for LineGeneralForm {
     }
 }
 
-pub trait LineSegment: Into<LineGeneralForm> {
+pub trait LineSegment {
     fn points(&self) -> &[Point];
     fn first_point(&self) -> Point;
     fn last_point(&self) -> Point;
@@ -124,7 +124,7 @@ impl OneColorLine {
         polygon: &Polygon<T, R>,
     ) -> Option<Self>
     where
-        T: LineSegment + Renderable<R>,
+        T: LineSegment + Renderable<R> + Into<LineGeneralForm>,
         R: Renderer,
     {
         let general_form = LineGeneralForm::new_from_points(start, end);
@@ -146,7 +146,31 @@ impl OneColorLine {
             return None;
         }
 
-        todo!()
+        let intersections: Vec<Point> = signums
+            .windows(2)
+            .zip(polygon.edges())
+            .filter(|&(signum, _)| (signum[0] != signum[1]))
+            .map(|(_, edge)| {
+                let edge_general_form = LineGeneralForm::new_from_points(
+                    edge.first_point(),
+                    edge.last_point(),
+                );
+
+                let x = (general_form.c * edge_general_form.b
+                    - edge_general_form.c * general_form.b)
+                    / (edge_general_form.a * general_form.b
+                        - general_form.a * edge_general_form.b);
+                let y = (general_form.c * edge_general_form.a
+                    - edge_general_form.c * general_form.a)
+                    / (general_form.a * edge_general_form.b
+                        - edge_general_form.a * general_form.b);
+
+                Point::new(x, y)
+            })
+            .collect();
+
+        (intersections.len() == 2)
+            .then(|| Self::new(intersections[0], intersections[1], color))
     }
 }
 
@@ -221,7 +245,11 @@ impl LineSegment for OneColorLine {
 
 #[cfg(test)]
 mod tests {
-    use crate::{line::OneColorLine, polygon::Polygon, Color, Renderer};
+    use crate::{
+        line::{LineSegment, OneColorLine},
+        polygon::Polygon,
+        Color, Point, Renderer,
+    };
 
     struct MockRenderer;
 
@@ -229,20 +257,20 @@ mod tests {
         type DrawError = ();
 
         fn set_color(&mut self, color: Color) {
+            let _ = color;
             unimplemented!()
         }
 
-        fn draw_point(
-            &mut self,
-            point: crate::Point,
-        ) -> Result<(), Self::DrawError> {
+        fn draw_point(&mut self, point: Point) -> Result<(), Self::DrawError> {
+            let _ = point;
             unimplemented!()
         }
 
         fn draw_points(
             &mut self,
-            points: &[crate::Point],
+            points: &[Point],
         ) -> Result<(), Self::DrawError> {
+            let _ = points;
             unimplemented!()
         }
 
@@ -272,5 +300,54 @@ mod tests {
         );
 
         assert!(line_inside_square.is_none());
+    }
+
+    #[test]
+    fn line_inside_polygon_is_some() {
+        let square: Polygon<_, MockRenderer> = Polygon::new(
+            &[
+                ((100, 100).into()),
+                ((100, 200).into()),
+                ((200, 200).into()),
+                ((200, 100).into()),
+            ],
+            Color::RED,
+        )
+        .unwrap();
+
+        let line_inside_square = OneColorLine::new_inside_polygon(
+            (50, 150).into(),
+            (250, 150).into(),
+            Color::RED,
+            &square,
+        );
+
+        assert!(line_inside_square.is_some());
+    }
+
+    #[test]
+    fn line_inside_polygon_cuts() {
+        let square: Polygon<_, MockRenderer> = Polygon::new(
+            &[
+                ((100, 100).into()),
+                ((100, 200).into()),
+                ((200, 200).into()),
+                ((200, 100).into()),
+            ],
+            Color::RED,
+        )
+        .unwrap();
+
+        let line_inside_square = OneColorLine::new_inside_polygon(
+            (50, 150).into(),
+            (250, 150).into(),
+            Color::RED,
+            &square,
+        );
+
+        assert!(line_inside_square.is_some());
+        let line_inside_square = line_inside_square.unwrap();
+        assert_eq!(line_inside_square.first_point(), Point::new(100, 150));
+        assert_eq!(line_inside_square.last_point(), Point::new(200, 150));
     }
 }

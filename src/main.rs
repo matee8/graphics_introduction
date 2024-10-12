@@ -65,26 +65,6 @@ fn main() {
                     process::exit(1);
                 });
 
-            let line = OneColorLine::new_45_deg(
-                (canvas_width >> 1, canvas_height >> 1).into(),
-                (canvas_width - 1, 0).into(),
-                Color::RED,
-            );
-            line.render(&mut canvas).unwrap_or_else(|_| {
-                eprintln!("Couldn't draw line.");
-                process::exit(1);
-            });
-
-            let line2 = OneColorLine::new(
-                (canvas_width >> 1, canvas_height >> 1).into(),
-                (canvas_width - 1, canvas_height - 1).into(),
-                Color::RED,
-            );
-            line2.render(&mut canvas).unwrap_or_else(|_| {
-                eprintln!("Couldn't draw line.");
-                process::exit(1);
-            });
-
             let square = Polygon::new(
                 &[
                     ((canvas_width >> 3, canvas_height >> 3).into()),
@@ -103,22 +83,22 @@ fn main() {
                 process::exit(1);
             });
 
-            // let line_inside_square = OneColorLine::new_inside_polygon(
-            //     ((canvas_width >> 3) - 10, (canvas_height >> 2) - 10).into(),
-            //     ((canvas_width >> 2) + 10, (canvas_height >> 3) + 10).into(),
-            //     Color::RED,
-            //     &square,
-            // )
-            // .unwrap_or_else(|| {
-            //     eprintln!(
-            //         "Invalid positions given for line inside square polygon."
-            //     );
-            //     process::exit(1);
-            // });
-            // line_inside_square.render(&mut canvas).unwrap_or_else(|_| {
-            //     eprintln!("Couldn't draw line inside square.");
-            //     process::exit(1);
-            // });
+            let line_inside_square = OneColorLine::new_inside_polygon(
+                ((canvas_width >> 3) - 10, (canvas_height >> 2) - 10).into(),
+                ((canvas_width >> 2) + 10, (canvas_height >> 3) + 10).into(),
+                Color::RED,
+                &square,
+            )
+            .unwrap_or_else(|| {
+                eprintln!(
+                    "Invalid positions given for line inside square polygon."
+                );
+                process::exit(1);
+            });
+            line_inside_square.render(&mut canvas).unwrap_or_else(|_| {
+                eprintln!("Couldn't draw line inside square.");
+                process::exit(1);
+            });
 
             canvas.present();
         }
