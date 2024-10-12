@@ -103,21 +103,22 @@ fn main() {
                 process::exit(1);
             });
             let line_inside_square = OneColorLine::new_inside_polygon(
-                ((canvas_width >> 3) + 1, (canvas_height >> 3) + 1).into(),
-                ((canvas_width >> 2) - 1, (canvas_height >> 2) - 1).into(),
+                ((canvas_width >> 3) - 10, (canvas_height >> 2) - 10).into(),
+                ((canvas_width >> 2) + 10, (canvas_height >> 3) + 10).into(),
                 Color::RED,
-                &square
+                &square,
             )
             .unwrap_or_else(|| {
-                eprintln!("Invalid positions given for line inside square polygon.");
+                eprintln!(
+                    "Invalid positions given for line inside square polygon."
+                );
                 process::exit(1);
             });
-            dbg!(&line_inside_square);
+            // dbg!(&line_inside_square);
             line_inside_square.render(&mut canvas).unwrap_or_else(|_| {
                 eprintln!("Couldn't draw line inside square.");
                 process::exit(1);
             });
-
 
             canvas.present();
         }
