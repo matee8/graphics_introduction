@@ -127,6 +127,13 @@ impl OneColorLine {
         T: LineSegment + Renderable<R> + Into<LineGeneralForm>,
         R: Renderer,
     {
+        let polygon_contains_start = polygon.contains(start);
+        let polygon_contains_end = polygon.contains(end);
+
+        if polygon_contains_start && polygon_contains_end {
+            return Some(Self::new(start, end, color));
+        }
+
         let general_form = LineGeneralForm::new_from_points(start, end);
 
         let signums: Vec<i32> = polygon
@@ -174,13 +181,13 @@ impl OneColorLine {
             return None;
         }
 
-        let start = if polygon.contains(start) {
+        let start = if polygon_contains_start {
             start
         } else {
             intersections[0]
         };
 
-        let end = if polygon.contains(end) {
+        let end = if polygon_contains_end {
             end
         } else {
             intersections[1]
