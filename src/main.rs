@@ -67,10 +67,10 @@ fn main() {
 
             let square = Polygon::new(
                 &[
-                    ((canvas_width >> 3, canvas_height >> 3).into()),
-                    ((canvas_width >> 3, canvas_height >> 2).into()),
-                    ((canvas_width >> 2, canvas_height >> 2).into()),
-                    ((canvas_width >> 2, canvas_height >> 3).into()),
+                    ((100, 100).into()),
+                    ((100, canvas_height - 100).into()),
+                    ((canvas_width - 100, canvas_height - 100).into()),
+                    ((canvas_width - 100, 100).into()),
                 ],
                 Color::RED,
             )
@@ -84,8 +84,8 @@ fn main() {
             });
 
             let line_inside_square = OneColorLine::new_inside_polygon(
-                ((canvas_width >> 3) - 10, (canvas_height >> 2) - 10).into(),
-                ((canvas_width >> 2) + 10, (canvas_height >> 3) + 10).into(),
+                (0, canvas_height >> 2).into(),
+                (canvas_width, canvas_height >> 2).into(),
                 Color::RED,
                 &square,
             )
