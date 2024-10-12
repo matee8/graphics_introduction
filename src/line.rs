@@ -148,8 +148,9 @@ impl OneColorLine {
 
         let intersections: Vec<Point> = signums
             .windows(2)
+            .map(|signum| (signum[0], signum[1]))
             .zip(polygon.edges())
-            .filter(|&(signum, _)| (signum[0] != signum[1]))
+            .filter(|&(signum, _)| (signum.0 != signum.1))
             .map(|(_, edge)| {
                 let edge_general_form = LineGeneralForm::new_from_points(
                     edge.first_point(),

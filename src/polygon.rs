@@ -34,16 +34,13 @@ where
         if points.len() < 2 {
             return Err(NotEnoughPointsError);
         }
-        let mut edges: Vec<OneColorLine> = points
-            .windows(2)
-            .map(|points| OneColorLine::new(points[0], points[1], color))
-            .collect();
 
-        edges.push(OneColorLine::new(
-            points[points.len() - 1],
-            points[0],
-            color,
-        ));
+        let edges: Vec<OneColorLine> = points
+            .windows(2)
+            .map(|points| (&points[0], &points[1]))
+            .chain(iter::once((&points[points.len() - 1], &points[0])))
+            .map(|points| OneColorLine::new(*points.0, *points.1, color))
+            .collect();
 
         Ok(Self {
             edges,
@@ -117,12 +114,10 @@ where
 
         if !lines
             .windows(2)
-            .all(|lines| lines[0].last_point() == lines[1].first_point())
+            .map(|lines| (&lines[0], &lines[1]))
+            .chain(iter::once((&lines[lines.len() - 1], &lines[0])))
+            .all(|lines| lines.0.last_point() == lines.1.first_point())
         {
-            return Err(PolygonFromLinesError::LinesDontTouch);
-        }
-
-        if lines[lines.len() - 1].last_point() != lines[0].first_point() {
             return Err(PolygonFromLinesError::LinesDontTouch);
         }
 
