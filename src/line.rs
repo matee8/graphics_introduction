@@ -1,4 +1,4 @@
-use core::{mem, iter};
+use core::{iter, mem};
 
 use thiserror::Error;
 
@@ -153,9 +153,6 @@ impl OneColorLine {
             return None;
         }
 
-        dbg!(signums.len());
-        dbg!(polygon.edges().len());
-
         let intersections: Vec<Point> = signums
             .windows(2)
             .map(|signum| (signum[0], signum[1]))
@@ -180,8 +177,6 @@ impl OneColorLine {
                 Point::new(x, y)
             })
             .collect();
-
-        dbg!(intersections.len());
 
         if intersections.len() != 2 {
             return None;
