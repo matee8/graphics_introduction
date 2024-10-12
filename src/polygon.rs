@@ -1,4 +1,4 @@
-use core::marker::PhantomData;
+use core::{iter, marker::PhantomData};
 
 use thiserror::Error;
 
@@ -68,6 +68,31 @@ where
     pub fn points(&self) -> Vec<Point> {
         self.edges().iter().map(LineSegment::first_point).collect()
     }
+
+    #[inline]
+    pub fn contains(&self, point: Point) -> bool {
+        let num_points = self.points().len();
+
+        self.points()
+            .windows(2)
+            .map(|edge| (edge[0], edge[1]))
+            .chain(iter::once((
+                self.points()[num_points - 1],
+                self.points()[0],
+            )))
+            .filter(|&(first_point, last_point)| {
+                (first_point.y > point.y) != (last_point.y > point.y)
+            })
+            .map(|(first_point, last_point)| {
+                let slope = (last_point.x - first_point.x)
+                    / (last_point.y - first_point.y);
+                first_point.x + (point.y - first_point.y) * slope
+            })
+            .filter(|&intersect_x| point.x < intersect_x)
+            .count()
+            % 2
+            == 1
+    }
 }
 
 #[non_exhaustive]
@@ -122,5 +147,70 @@ where
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Polygon;
+    use crate::{Color, Point, Renderer};
+
+    struct MockRenderer;
+
+    impl Renderer for MockRenderer {
+        type DrawError = ();
+
+        fn set_color(&mut self, color: Color) {
+            let _ = color;
+            unimplemented!()
+        }
+
+        fn draw_point(&mut self, point: Point) -> Result<(), Self::DrawError> {
+            let _ = point;
+            unimplemented!()
+        }
+
+        fn draw_points(
+            &mut self,
+            points: &[Point],
+        ) -> Result<(), Self::DrawError> {
+            let _ = points;
+            unimplemented!()
+        }
+
+        fn current_color(&self) -> Color {
+            unimplemented!()
+        }
+    }
+
+    #[test]
+    fn polygon_contains_point_works_not_inside() {
+        let polygon: Polygon<_, MockRenderer> = Polygon::new(
+            &[
+                (186, 14).into(),
+                (186, 44).into(),
+                (175, 115).into(),
+                (175, 85).into(),
+            ],
+            Color::RED,
+        )
+        .unwrap();
+
+        let point = (150, 85).into();
+
+        assert!(!polygon.contains(point))
+    }
+
+    #[test]
+    fn polygon_contains_point_works_inside() {
+        let polygon: Polygon<_, MockRenderer> = Polygon::new(
+            &[(0, 0).into(), (5, 0).into(), (5, 5).into(), (0, 5).into()],
+            Color::RED,
+        )
+        .unwrap();
+
+        let point = (3, 3).into();
+
+        assert!(polygon.contains(point))
     }
 }
