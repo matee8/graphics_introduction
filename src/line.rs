@@ -169,8 +169,23 @@ impl OneColorLine {
             })
             .collect();
 
-        (intersections.len() == 2)
-            .then(|| Self::new(intersections[0], intersections[1], color))
+        if intersections.len() != 2 {
+            return None;
+        }
+
+        let start = if polygon.contains(start) {
+            start
+        } else {
+            intersections[0]
+        };
+
+        let end = if polygon.contains(end) {
+            end
+        } else {
+            intersections[1]
+        };
+
+        Some(Self::new(start, end, color))
     }
 }
 
@@ -349,5 +364,51 @@ mod tests {
         let line_inside_square = line_inside_square.unwrap();
         assert_eq!(line_inside_square.first_point(), Point::new(100, 150));
         assert_eq!(line_inside_square.last_point(), Point::new(200, 150));
+    }
+
+    #[test]
+    fn line_fully_inside_polygon_is_some() {
+        let square: Polygon<_, MockRenderer> = Polygon::new(
+            &[
+                ((100, 100).into()),
+                ((100, 200).into()),
+                ((200, 200).into()),
+                ((200, 100).into()),
+            ],
+            Color::RED,
+        )
+        .unwrap();
+
+        let line_inside_square = OneColorLine::new_inside_polygon(
+            (125, 150).into(),
+            (175, 150).into(),
+            Color::RED,
+            &square,
+        );
+
+        assert!(line_inside_square.is_some());
+    }
+
+    #[test]
+    fn line_fully_inside_polygon_doesnt_cut() {
+        let square: Polygon<_, MockRenderer> = Polygon::new(
+            &[
+                ((100, 100).into()),
+                ((100, 200).into()),
+                ((200, 200).into()),
+                ((200, 100).into()),
+            ],
+            Color::RED,
+        )
+        .unwrap();
+
+        let p1 = (125, 150).into();
+        let p2 = (175, 150).into();
+        let line_inside_square =
+            OneColorLine::new_inside_polygon(p1, p2, Color::RED, &square);
+
+        let line_inside_square = line_inside_square.unwrap();
+        assert_eq!(line_inside_square.first_point(), p1);
+        assert_eq!(line_inside_square.last_point(), p2);
     }
 }
