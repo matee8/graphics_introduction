@@ -89,7 +89,7 @@ fn main() {
                 Color::RED,
                 &square,
             )
-            .unwrap_or_else(|| {
+            .unwrap_or_else(|_| {
                 eprintln!(
                     "Invalid positions given for line inside square polygon."
                 );

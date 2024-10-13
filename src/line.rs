@@ -59,6 +59,19 @@ pub struct OneColorLine {
     points: Vec<Point>,
 }
 
+#[non_exhaustive]
+#[derive(Debug, Error, Clone, Copy)]
+pub enum CutLineInsidePolygonError {
+    #[error("Line is fully outside polygon.")]
+    Outside,
+    #[error(
+        "Not enough intersections between the line and the polygon's edges."
+    )]
+    NotEnoughIntersections,
+    #[error("Intersection with polygon isn't in the original line.")]
+    InvalidIntersection,
+}
+
 impl OneColorLine {
     #[must_use]
     #[inline]
@@ -126,23 +139,69 @@ impl OneColorLine {
         Self { color, points }
     }
 
-    #[must_use]
     #[inline]
     pub fn new_inside_polygon<T, R>(
         start: Point,
         end: Point,
         color: Color,
         polygon: &Polygon<T, R>,
-    ) -> Option<Self>
+    ) -> Result<Self, CutLineInsidePolygonError>
     where
         T: LineSegment + Renderable<R> + Into<LineGeneralForm>,
+        R: Renderer,
+    {
+        let (start, end) =
+            Self::get_start_end_inside_polygon(start, end, polygon)?;
+
+        Ok(Self::new(start, end, color))
+    }
+
+    #[inline]
+    pub fn cut_inside_polygon<T, R>(
+        &mut self,
+        polygon: &Polygon<T, R>,
+    ) -> Result<(), CutLineInsidePolygonError>
+    where
+        T: Renderable<R> + LineSegment + Into<LineGeneralForm>,
+        R: Renderer,
+    {
+        let (start, end) = Self::get_start_end_inside_polygon(
+            self.first_point(),
+            self.last_point(),
+            polygon,
+        )?;
+
+        let index = self
+            .points
+            .iter()
+            .position(|point| *point == start || *point == end)
+            .ok_or(CutLineInsidePolygonError::InvalidIntersection)?;
+        self.points.drain(..index);
+
+        let index = self
+            .points
+            .iter()
+            .rposition(|point| *point == end || *point == start)
+            .ok_or(CutLineInsidePolygonError::InvalidIntersection)?;
+        self.points.drain(index + 1..);
+
+        Ok(())
+    }
+
+    fn get_start_end_inside_polygon<T, R>(
+        start: Point,
+        end: Point,
+        polygon: &Polygon<T, R>,
+    ) -> Result<(Point, Point), CutLineInsidePolygonError>
+    where
+        T: Renderable<R> + LineSegment + Into<LineGeneralForm>,
         R: Renderer,
     {
         let polygon_contains_start = polygon.contains(start);
         let polygon_contains_end = polygon.contains(end);
 
         if polygon_contains_start && polygon_contains_end {
-            return Some(Self::new(start, end, color));
+            return Ok((start, end));
         }
 
         let general_form = LineGeneralForm::new_from_points(start, end);
@@ -161,7 +220,7 @@ impl OneColorLine {
         if signums.first().is_some_and(|first| {
             signums.iter().skip(1).all(|elem| first == elem)
         }) {
-            return None;
+            return Err(CutLineInsidePolygonError::Outside);
         }
 
         let intersections: Vec<Point> = signums
@@ -181,7 +240,7 @@ impl OneColorLine {
             .collect();
 
         if intersections.len() != 2 {
-            return None;
+            return Err(CutLineInsidePolygonError::NotEnoughIntersections);
         }
 
         let start = if polygon_contains_start {
@@ -196,7 +255,7 @@ impl OneColorLine {
             intersections[1]
         };
 
-        Some(Self::new(start, end, color))
+        Ok((start, end))
     }
 }
 
@@ -306,7 +365,7 @@ mod tests {
     }
 
     #[test]
-    fn line_not_inside_polygon_is_none() {
+    fn line_not_inside_polygon_is_err() {
         let square: Polygon<_, MockRenderer> = Polygon::new(
             &[
                 ((100, 100).into()),
@@ -325,11 +384,11 @@ mod tests {
             &square,
         );
 
-        assert!(line_inside_square.is_none());
+        assert!(line_inside_square.is_err());
     }
 
     #[test]
-    fn line_inside_polygon_is_some() {
+    fn line_inside_polygon_is_ok() {
         let square: Polygon<_, MockRenderer> = Polygon::new(
             &[
                 ((100, 100).into()),
@@ -348,7 +407,7 @@ mod tests {
             &square,
         );
 
-        assert!(line_inside_square.is_some());
+        assert!(line_inside_square.is_ok());
     }
 
     #[test]
@@ -371,14 +430,14 @@ mod tests {
             &square,
         );
 
-        assert!(line_inside_square.is_some());
+        assert!(line_inside_square.is_ok());
         let line_inside_square = line_inside_square.unwrap();
         assert_eq!(line_inside_square.first_point(), Point::new(100, 150));
         assert_eq!(line_inside_square.last_point(), Point::new(200, 150));
     }
 
     #[test]
-    fn line_fully_inside_polygon_is_some() {
+    fn line_fully_inside_polygon_is_ok() {
         let square: Polygon<_, MockRenderer> = Polygon::new(
             &[
                 ((100, 100).into()),
@@ -397,7 +456,7 @@ mod tests {
             &square,
         );
 
-        assert!(line_inside_square.is_some());
+        assert!(line_inside_square.is_ok());
     }
 
     #[test]
@@ -443,9 +502,53 @@ mod tests {
             &square,
         );
 
-        assert!(line_inside_square.is_some());
+        assert!(line_inside_square.is_ok());
         let line_inside_square = line_inside_square.unwrap();
         assert_eq!(line_inside_square.first_point(), Point::new(150, 200));
         assert_eq!(line_inside_square.last_point(), Point::new(150, 100));
+    }
+
+    #[test]
+    fn line_cut_after_creation_is_ok() {
+        let square: Polygon<_, MockRenderer> = Polygon::new(
+            &[
+                ((100, 100).into()),
+                ((100, 200).into()),
+                ((200, 200).into()),
+                ((200, 100).into()),
+            ],
+            Color::RED,
+        )
+        .unwrap();
+
+        let line_inside_square =
+            OneColorLine::new((150, 50).into(), (150, 250).into(), Color::RED)
+                .cut_inside_polygon(&square);
+
+        dbg!(&line_inside_square);
+        assert!(line_inside_square.is_ok());
+    }
+
+    #[test]
+    fn line_cut_after_creation_works() {
+        let square: Polygon<_, MockRenderer> = Polygon::new(
+            &[
+                ((100, 100).into()),
+                ((100, 200).into()),
+                ((200, 200).into()),
+                ((200, 100).into()),
+            ],
+            Color::RED,
+        )
+        .unwrap();
+
+        let mut line_inside_square =
+            OneColorLine::new((150, 50).into(), (150, 250).into(), Color::RED);
+
+        let res = line_inside_square.cut_inside_polygon(&square);
+
+        assert!(res.is_ok());
+        assert_eq!(line_inside_square.first_point(), Point::new(150, 100));
+        assert_eq!(line_inside_square.last_point(), Point::new(150, 200));
     }
 }
