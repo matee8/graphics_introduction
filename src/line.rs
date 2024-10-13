@@ -4,7 +4,7 @@ use thiserror::Error;
 
 use crate::{polygon::Polygon, Color, Point, Renderable, Renderer};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct LineGeneralForm {
     a: i32,
     b: i32,
@@ -53,7 +53,7 @@ pub trait LineSegment {
     fn last_point(&self) -> Point;
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OneColorLine {
     color: Color,
     points: Vec<Point>,
