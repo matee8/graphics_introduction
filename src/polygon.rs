@@ -66,6 +66,7 @@ where
         self.edges().iter().map(LineSegment::first_point).collect()
     }
 
+    #[must_use]
     #[inline]
     pub fn contains(&self, point: Point) -> bool {
         let num_points = self.points().len();

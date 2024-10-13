@@ -27,6 +27,17 @@ impl LineGeneralForm {
             end.x * start.y - start.x * end.y,
         )
     }
+
+    #[must_use]
+    #[inline]
+    pub const fn intersection(&self, other: &Self) -> Point {
+        let x = (self.c * other.b - other.c * self.b)
+            / (other.a * self.b - self.a * other.b);
+        let y = (self.c * other.a - other.c * self.a)
+            / (self.a * other.b - other.a * self.b);
+
+        Point::new(x, y)
+    }
 }
 
 impl From<(Point, Point)> for LineGeneralForm {
@@ -165,16 +176,7 @@ impl OneColorLine {
                     edge.last_point(),
                 );
 
-                let x = (general_form.c * edge_general_form.b
-                    - edge_general_form.c * general_form.b)
-                    / (edge_general_form.a * general_form.b
-                        - general_form.a * edge_general_form.b);
-                let y = (general_form.c * edge_general_form.a
-                    - edge_general_form.c * general_form.a)
-                    / (general_form.a * edge_general_form.b
-                        - edge_general_form.a * general_form.b);
-
-                Point::new(x, y)
+                general_form.intersection(&edge_general_form)
             })
             .collect();
 
