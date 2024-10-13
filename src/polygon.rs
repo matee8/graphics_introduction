@@ -14,7 +14,7 @@ where
     R: Renderer,
 {
     edges: Vec<T>,
-    _renderer: PhantomData<*const R>,
+    _renderer: PhantomData<fn() -> R>,
 }
 
 #[non_exhaustive]
