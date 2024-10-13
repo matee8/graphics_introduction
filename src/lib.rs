@@ -1,3 +1,5 @@
+use core::{ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign}, cmp::Ordering};
+
 pub mod line;
 pub mod pixel;
 pub mod polygon;
@@ -56,6 +58,104 @@ impl From<Point> for (i32, i32) {
     #[inline]
     fn from(value: Point) -> Self {
         (value.x, value.y)
+    }
+}
+
+impl Add for Point {
+    type Output = Self;
+
+    #[inline]
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
+impl AddAssign for Point {
+    #[inline]
+    fn add_assign(&mut self, rhs: Self) {
+        self.x += rhs.x;
+        self.y += rhs.y;
+    }
+}
+
+impl Div<i32> for Point {
+    type Output = Self;
+
+    #[inline]
+    fn div(self, rhs: i32) -> Self::Output {
+        Self {
+            x: self.x / rhs,
+            y: self.y / rhs,
+        }
+    }
+}
+
+impl DivAssign<i32> for Point {
+    #[inline]
+    fn div_assign(&mut self, rhs: i32) {
+        self.x /= rhs;
+        self.y /= rhs;
+    }
+}
+
+impl Mul<i32> for Point {
+    type Output = Self;
+
+    #[inline]
+    fn mul(self, rhs: i32) -> Self::Output {
+        Self {
+            x: self.x * rhs,
+            y: self.y * rhs,
+        }
+    }
+}
+
+impl MulAssign<i32> for Point {
+    #[inline]
+    fn mul_assign(&mut self, rhs: i32) {
+        self.x *= rhs;
+        self.y *= rhs;
+    }
+}
+
+impl Sub for Point {
+    type Output = Self;
+
+    #[inline]
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        }
+    }
+}
+
+impl SubAssign for Point {
+    #[inline]
+    fn sub_assign(&mut self, rhs: Self) {
+        self.x -= rhs.x;
+        self.y -= rhs.y;
+    }
+}
+
+impl PartialOrd for Point {
+    #[inline]
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Point {
+    #[inline]
+    fn cmp(&self, other: &Self) -> Ordering {
+        let x_cmp = self.x.cmp(&other.x);
+        if x_cmp != Ordering::Equal {
+            return x_cmp;
+        }
+        self.y.cmp(&other.y)
     }
 }
 
