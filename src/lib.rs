@@ -159,7 +159,7 @@ impl Ord for Point {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Color {
     r: u8,
     g: u8,
@@ -208,6 +208,102 @@ impl From<(u8, u8, u8)> for Color {
     #[inline]
     fn from(value: (u8, u8, u8)) -> Self {
         Self::new_rgb(value.0, value.1, value.2)
+    }
+}
+
+impl Add for Color {
+    type Output = Self;
+
+    #[inline]
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            r: self.r.saturating_add(rhs.r),
+            g: self.g.saturating_add(rhs.g),
+            b: self.b.saturating_add(rhs.b),
+            a: self.a.saturating_add(rhs.a),
+        }
+    }
+}
+
+impl AddAssign for Color {
+    #[inline]
+    fn add_assign(&mut self, rhs: Self) {
+        self.r = self.r.saturating_add(rhs.r);
+        self.g = self.g.saturating_add(rhs.g);
+        self.b = self.b.saturating_add(rhs.b);
+        self.a = self.a.saturating_add(rhs.a);
+    }
+}
+
+impl Div<u8> for Color {
+    type Output = Self;
+    
+    #[inline]
+    fn div(self, rhs: u8) -> Self::Output {
+        Self {
+            r: self.r.saturating_div(rhs),
+            g: self.g.saturating_div(rhs),
+            b: self.b.saturating_div(rhs),
+            a: self.a.saturating_div(rhs),
+        }
+    }
+}
+
+impl DivAssign<u8> for Color {
+    #[inline]
+    fn div_assign(&mut self, rhs: u8) {
+        self.r = self.r.saturating_div(rhs);
+        self.g = self.g.saturating_div(rhs);
+        self.b = self.b.saturating_div(rhs);
+        self.a = self.a.saturating_div(rhs);
+    }
+}
+
+impl Mul<u8> for Color {
+    type Output = Self;
+
+    #[inline]
+    fn mul(self, rhs: u8) -> Self::Output {
+        Self {
+            r: self.r.saturating_mul(rhs),
+            g: self.g.saturating_mul(rhs),
+            b: self.b.saturating_mul(rhs),
+            a: self.a.saturating_mul(rhs),
+        }
+    }
+}
+
+impl MulAssign<u8> for Color {
+    #[inline]
+    fn mul_assign(&mut self, rhs: u8) {
+        self.r = self.r.saturating_mul(rhs);
+        self.g = self.g.saturating_mul(rhs);
+        self.b = self.b.saturating_mul(rhs);
+        self.a = self.a.saturating_mul(rhs);
+    }
+}
+
+impl Sub for Color {
+    type Output = Self;
+
+    #[inline]
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self {
+            r: self.r.saturating_sub(rhs.r),
+            g: self.g.saturating_sub(rhs.g),
+            b: self.b.saturating_sub(rhs.b),
+            a: self.a.saturating_sub(rhs.a),
+        }
+    }
+}
+
+impl SubAssign for Color {
+    #[inline]
+    fn sub_assign(&mut self, rhs: Self) {
+        self.r = self.r.saturating_sub(rhs.r);
+        self.g = self.g.saturating_sub(rhs.g);
+        self.b = self.b.saturating_sub(rhs.b);
+        self.a = self.a.saturating_sub(rhs.a);
     }
 }
 
