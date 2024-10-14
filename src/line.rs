@@ -198,10 +198,13 @@ impl OneColorLine {
         R: Renderer,
     {
         let polygon_contains_start = polygon.contains(start);
-        let polygon_contains_end = polygon.contains(end);
+        let mut polygon_contains_end = None;
 
-        if polygon_contains_start && polygon_contains_end {
-            return Ok((start, end));
+        if polygon_contains_start {
+            polygon_contains_end = Some(polygon.contains(end));
+            if polygon_contains_end == Some(true) {
+                return Ok((start, end));
+            }
         }
 
         let general_form = LineGeneralForm::new_from_points(start, end);
@@ -249,11 +252,16 @@ impl OneColorLine {
             intersections[0]
         };
 
-        let end = if polygon_contains_end {
-            end
-        } else {
-            intersections[1]
-        };
+        let end = polygon_contains_end.map_or_else(
+            || {
+                if polygon.contains(end) {
+                    end
+                } else {
+                    intersections[1]
+                }
+            },
+            |flag| if flag { end } else { intersections[1] },
+        );
 
         Ok((start, end))
     }
