@@ -1,6 +1,9 @@
 use thiserror::Error;
 
-use crate::{line::{OneColorLine, LineDrawError}, Color, Point, Renderable, Renderer};
+use crate::{
+    line::{LineDrawError, OneColorLine},
+    Color, Point, Renderable, Renderer,
+};
 
 #[derive(Debug)]
 pub struct OneColorParametricCurve {
@@ -76,7 +79,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{Renderer, Color, Point, curve::OneColorParametricCurve};
+    use crate::{curve::OneColorParametricCurve, Color, Point, Renderer};
 
     struct MockRenderer;
 

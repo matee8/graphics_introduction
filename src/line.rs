@@ -345,7 +345,7 @@ impl LineSegment for OneColorLine {
 #[cfg(test)]
 mod tests {
     use crate::{
-        line::{LineSegment, OneColorLine, LineGeneralForm},
+        line::{LineGeneralForm, LineSegment, OneColorLine},
         polygon::Polygon,
         Color, Point, Renderer,
     };

@@ -17,6 +17,10 @@ path = "src/lib.rs"
 name = "line_inside_polygon"
 required-features = ["sdl2"]
 
+[[example]]
+name = "circle"
+required-features = ["sdl2"]
+
 [profile.dev]
 opt-level = 1
 
