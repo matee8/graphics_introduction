@@ -1,4 +1,7 @@
-use core::{ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign}, cmp::Ordering};
+use core::{
+    cmp::Ordering,
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
+};
 
 pub mod line;
 pub mod pixel;
@@ -237,7 +240,7 @@ impl AddAssign for Color {
 
 impl Div<u8> for Color {
     type Output = Self;
-    
+
     #[inline]
     fn div(self, rhs: u8) -> Self::Output {
         Self {

@@ -10,6 +10,12 @@ categories = ["graphics", "rendering", "rendering::engine"]
 description = "Introduction to computer graphics assignment"
 keywords = ["graphics", "rendering", "sdl2"]
 
+[lib]
+path = "src/lib.rs"
+
+[[example]]
+name = "line_inside_polygon"
+
 [profile.dev]
 opt-level = 1
 
