@@ -22,6 +22,28 @@ const fn clamp_position(value: i32) -> i32 {
     }
 }
 
+pub trait Renderer {
+    type DrawError;
+    fn draw_point(&mut self, point: Point) -> Result<(), Self::DrawError>;
+    #[inline]
+    fn draw_points(&mut self, points: &[Point]) -> Result<(), Self::DrawError> {
+        for point in points {
+            self.draw_point(*point)?;
+        }
+        Ok(())
+    }
+    fn set_color(&mut self, color: Color);
+    fn current_color(&self) -> Color;
+}
+
+pub trait Renderable<T>
+where
+    T: Renderer,
+{
+    type Error;
+    fn render(&self, renderer: &mut T) -> Result<(), Self::Error>;
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Point {
     x: i32,
@@ -308,26 +330,4 @@ impl SubAssign for Color {
         self.b = self.b.saturating_sub(rhs.b);
         self.a = self.a.saturating_sub(rhs.a);
     }
-}
-
-pub trait Renderer {
-    type DrawError;
-    fn draw_point(&mut self, point: Point) -> Result<(), Self::DrawError>;
-    #[inline]
-    fn draw_points(&mut self, points: &[Point]) -> Result<(), Self::DrawError> {
-        for point in points {
-            self.draw_point(*point)?;
-        }
-        Ok(())
-    }
-    fn set_color(&mut self, color: Color);
-    fn current_color(&self) -> Color;
-}
-
-pub trait Renderable<T>
-where
-    T: Renderer,
-{
-    type Error;
-    fn render(&self, renderer: &mut T) -> Result<(), Self::Error>;
 }
