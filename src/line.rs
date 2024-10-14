@@ -330,6 +330,7 @@ impl LineSegment for OneColorLine {
 
 #[cfg(test)]
 mod tests {
+    use super::LineGeneralForm;
     use crate::{
         line::{LineSegment, OneColorLine},
         polygon::Polygon,
@@ -362,6 +363,29 @@ mod tests {
         fn current_color(&self) -> Color {
             unimplemented!()
         }
+    }
+
+    #[test]
+    fn new_line_has_correct_start_and_end_points() {
+        let start = (100, 100).into();
+        let end = (100, 200).into();
+
+        let line = OneColorLine::new(start, end, Color::RED);
+
+        assert_eq!(line.first_point(), start);
+        assert_eq!(line.last_point(), end);
+    }
+
+    #[test]
+    fn new_line_has_correct_general_form() {
+        let start = (100, 100).into();
+        let end = (100, 200).into();
+
+        let general_form = LineGeneralForm::new_from_points(start, end);
+        let line: LineGeneralForm =
+            OneColorLine::new(start, end, Color::RED).into();
+
+        assert_eq!(line, general_form);
     }
 
     #[test]
