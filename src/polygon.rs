@@ -148,8 +148,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::Polygon;
-    use crate::{Color, Point, Renderer};
+    use std::iter;
+
+    use crate::{line::OneColorLine, polygon::Polygon, Color, Point, Renderer};
 
     struct MockRenderer;
 
@@ -180,7 +181,45 @@ mod tests {
     }
 
     #[test]
-    fn polygon_contains_point_works_not_inside() {
+    fn new_polygon_has_correct_points() {
+        let points = [
+            (100, 100).into(),
+            (100, 200).into(),
+            (200, 200).into(),
+            (200, 100).into(),
+        ];
+        let polygon: Polygon<_, MockRenderer> =
+            Polygon::new(&points, Color::RED).unwrap();
+
+        assert_eq!(polygon.points(), points);
+    }
+
+    #[test]
+    fn new_polygon_has_correct_edges() {
+        let points = [
+            (100, 100).into(),
+            (100, 200).into(),
+            (200, 200).into(),
+            (200, 100).into(),
+        ];
+        let color = Color::RED;
+        let polygon: Polygon<_, MockRenderer> =
+            Polygon::new(&points, color).unwrap();
+
+        let lines: Vec<OneColorLine> = points
+            .windows(2)
+            .map(|points| (points[0], points[1]))
+            .chain(iter::once((points[points.len() - 1], points[0])))
+            .map(|(start, end)| OneColorLine::new(start, end, color))
+            .collect();
+
+        for (i, edge) in polygon.edges().iter().enumerate() {
+            assert_eq!(*edge, lines[i]);
+        }
+    }
+
+    #[test]
+    fn polygon_contains_returns_false_if_not_inside() {
         let polygon: Polygon<_, MockRenderer> = Polygon::new(
             &[
                 (186, 14).into(),
@@ -198,7 +237,7 @@ mod tests {
     }
 
     #[test]
-    fn polygon_contains_point_works_inside() {
+    fn polygon_contains_returns_true_if_inside() {
         let polygon: Polygon<_, MockRenderer> = Polygon::new(
             &[(0, 0).into(), (5, 0).into(), (5, 5).into(), (0, 5).into()],
             Color::RED,
