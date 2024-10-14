@@ -3,6 +3,7 @@ use core::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
 };
 
+pub mod curve;
 pub mod line;
 pub mod pixel;
 pub mod polygon;

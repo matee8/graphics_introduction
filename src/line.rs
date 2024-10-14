@@ -156,6 +156,12 @@ impl OneColorLine {
         Ok(Self::new(start, end, color))
     }
 
+    #[must_use]
+    #[inline]
+    pub const fn color(&self) -> Color {
+        self.color
+    }
+
     #[inline]
     pub fn cut_inside_polygon<T, R>(
         &mut self,
@@ -338,9 +344,8 @@ impl LineSegment for OneColorLine {
 
 #[cfg(test)]
 mod tests {
-    use super::LineGeneralForm;
     use crate::{
-        line::{LineSegment, OneColorLine},
+        line::{LineSegment, OneColorLine, LineGeneralForm},
         polygon::Polygon,
         Color, Point, Renderer,
     };
