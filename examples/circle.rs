@@ -65,11 +65,11 @@ fn main() {
                 });
 
             let circle = OneColorParametricCurve::new(
-                Color::BLACK,
-                |t| t * f32::cos(t as f32) as i32 + canvas_width >> 1,
-                |t| t * f32::sin(t as f32) as i32 + canvas_height >> 1,
-                0,
-                2 * f64::consts::PI as i32,
+                Color::RED,
+                |t| t * f32::cos(t as f32) as i32 + canvas_width >> 2,
+                |t| t * f32::sin(t as f32) as i32 + canvas_height >> 2,
+                0_f64,
+                2_f64 * f64::consts::PI,
                 500,
             ).unwrap_or_else(|_| {
                 eprintln!("Invalid interval given for circle.");
