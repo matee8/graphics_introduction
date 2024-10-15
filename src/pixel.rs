@@ -21,9 +21,9 @@ impl From<(Point, Color)> for Pixel {
     }
 }
 
-impl From<(i32, i32, Color)> for Pixel {
+impl From<(f64, f64, Color)> for Pixel {
     #[inline]
-    fn from(value: (i32, i32, Color)) -> Self {
+    fn from(value: (f64, f64, Color)) -> Self {
         Self::new((value.0, value.1).into(), value.2)
     }
 }

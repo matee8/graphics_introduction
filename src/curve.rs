@@ -2,7 +2,7 @@ use thiserror::Error;
 
 use crate::{
     line::{LineDrawError, OneColorLine},
-    Color, Point, Renderable, Renderer,
+    Color, Point, Renderable, Renderer, ERROR_MARGIN,
 };
 
 #[derive(Debug)]
@@ -26,8 +26,8 @@ impl OneColorParametricCurve {
         n: i32,
     ) -> Result<Self, WrongInterval>
     where
-        X: Fn(i32) -> i32,
-        Y: Fn(i32) -> i32,
+        X: Fn(f64) -> f64,
+        Y: Fn(f64) -> f64,
     {
         if end <= start {
             return Err(WrongInterval);
@@ -35,14 +35,13 @@ impl OneColorParametricCurve {
 
         let mut segments = Vec::new();
 
-        let h = f64::from(end - start) / f64::from(n);
-        dbg!(h);
+        let h = end - start / f64::from(n);
         let mut t = start;
-        let mut point0 = Point::new(x_fn(t as i32), y_fn(t as i32));
-        while t < end {
+        let mut point0 = Point::new(x_fn(t), y_fn(t));
+
+        while (t - end).abs() < ERROR_MARGIN {
             t += h;
-            dbg!(t);
-            let point1 = Point::new(x_fn(t as i32), y_fn(t as i32));
+            let point1 = Point::new(x_fn(t), y_fn(t));
             segments.push(OneColorLine::new(point0, point1, color));
             point0 = point1;
         }
@@ -110,6 +109,4 @@ mod tests {
             unimplemented!()
         }
     }
-
-    todo!();
 }

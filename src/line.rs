@@ -2,39 +2,41 @@ use core::{iter, mem};
 
 use thiserror::Error;
 
-use crate::{polygon::Polygon, Color, Point, Renderable, Renderer};
+use crate::{
+    polygon::Polygon, Color, Point, Renderable, Renderer, ERROR_MARGIN,
+};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct LineGeneralForm {
-    a: i32,
-    b: i32,
-    c: i32,
+    a: f64,
+    b: f64,
+    c: f64,
 }
 
 impl LineGeneralForm {
     #[must_use]
     #[inline]
-    pub const fn new(a: i32, b: i32, c: i32) -> Self {
+    pub const fn new(a: f64, b: f64, c: f64) -> Self {
         Self { a, b, c }
     }
 
     #[must_use]
     #[inline]
-    pub const fn new_from_points(start: Point, end: Point) -> Self {
+    pub fn new_from_points(start: Point, end: Point) -> Self {
         Self::new(
             end.y - start.y,
             start.x - end.x,
-            end.x * start.y - start.x * end.y,
+            end.x.mul_add(start.y, -(start.x * end.y)),
         )
     }
 
     #[must_use]
     #[inline]
-    pub const fn intersection(&self, other: &Self) -> Point {
-        let x = (self.c * other.b - other.c * self.b)
-            / (other.a * self.b - self.a * other.b);
-        let y = (self.c * other.a - other.c * self.a)
-            / (self.a * other.b - other.a * self.b);
+    pub fn intersection(&self, other: &Self) -> Point {
+        let x = self.c.mul_add(other.b, -(other.c * self.b))
+            / other.a.mul_add(self.b, -(self.a * other.b));
+        let y = self.c.mul_add(other.a, -(other.c * self.a))
+            / self.a.mul_add(other.b, -(other.a * self.b));
 
         Point::new(x, y)
     }
@@ -53,7 +55,7 @@ pub trait LineSegment {
     fn last_point(&self) -> Point;
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct OneColorLine {
     color: Color,
     points: Vec<Point>,
@@ -78,22 +80,22 @@ impl OneColorLine {
     pub fn new_45_deg(start: Point, end: Point, color: Color) -> Self {
         let distance_x = end.x - start.x;
         let distance_y = start.y - end.y;
-        let mut decision = 2 * distance_y - distance_x;
+        let mut decision = 2.0_f64.mul_add(distance_y, -distance_x);
         let mut points = Vec::new();
         let mut x = start.x;
         let mut y = start.y;
 
-        for _ in 0..distance_x {
+        for _ in 0..distance_x as i32 {
             points.push((x, y).into());
 
-            if decision > 0 {
-                y -= 1;
-                decision += 2 * (distance_y - distance_x);
+            if decision > 0.0 {
+                y -= 1.0;
+                decision += 2.0 * (distance_y - distance_x);
             } else {
-                decision += 2 * distance_y;
+                decision += 2.0 * distance_y;
             }
 
-            x += 1;
+            x += 1.0;
         }
 
         Self { color, points }
@@ -112,18 +114,20 @@ impl OneColorLine {
         } else {
             false
         };
-        let mut decision = 2 * distance_y - distance_x;
+        let mut decision = 2.0_f64.mul_add(distance_y, -distance_x);
         let mut x = start.x;
         let mut y = start.y;
         let mut points = Vec::from([(x, y).into()]);
-        while x != end.x || y != end.y {
-            if decision > 0 {
+        while (x - end.x).abs() > ERROR_MARGIN
+            || (y - end.y).abs() > ERROR_MARGIN
+        {
+            if decision > 0.0 {
                 if swapped {
                     x += sign_x;
                 } else {
                     y -= sign_y;
                 }
-                decision -= 2 * distance_x;
+                decision -= 2.0 * distance_x;
             }
 
             if swapped {
@@ -132,7 +136,7 @@ impl OneColorLine {
                 x += sign_x;
             }
 
-            decision += 2 * distance_y;
+            decision += 2.0 * distance_y;
             points.push((x, y).into());
         }
 
@@ -215,14 +219,14 @@ impl OneColorLine {
 
         let general_form = LineGeneralForm::new_from_points(start, end);
 
-        let signums: Vec<i32> = polygon
+        let signums: Vec<i8> = polygon
             .points()
             .iter()
             .map(|point| {
-                (general_form.a * point.x
-                    + general_form.b * point.y
-                    + general_form.c)
-                    .signum()
+                general_form
+                    .a
+                    .mul_add(point.x, general_form.b * point.y)
+                    .signum() as i8
             })
             .collect();
 
@@ -279,8 +283,10 @@ impl From<OneColorLine> for LineGeneralForm {
         Self::new(
             value.last_point().y - value.first_point().y,
             value.first_point().x - value.last_point().x,
-            value.last_point().x * value.first_point().y
-                - value.first_point().x * value.last_point().y,
+            value.last_point().x.mul_add(
+                value.first_point().y,
+                -(value.first_point().x * value.last_point().y),
+            ),
         )
     }
 }
@@ -469,8 +475,8 @@ mod tests {
 
         assert!(line_inside_square.is_ok());
         let line_inside_square = line_inside_square.unwrap();
-        assert_eq!(line_inside_square.first_point(), Point::new(100, 150));
-        assert_eq!(line_inside_square.last_point(), Point::new(200, 150));
+        assert_eq!(line_inside_square.first_point(), Point::new(100.0, 150.0));
+        assert_eq!(line_inside_square.last_point(), Point::new(200.0, 150.0));
     }
 
     #[test]
@@ -541,8 +547,8 @@ mod tests {
 
         assert!(line_inside_square.is_ok());
         let line_inside_square = line_inside_square.unwrap();
-        assert_eq!(line_inside_square.first_point(), Point::new(150, 200));
-        assert_eq!(line_inside_square.last_point(), Point::new(150, 100));
+        assert_eq!(line_inside_square.first_point(), Point::new(150.0, 200.0));
+        assert_eq!(line_inside_square.last_point(), Point::new(150.0, 100.0));
     }
 
     #[test]
@@ -585,7 +591,7 @@ mod tests {
         let res = line_inside_square.cut_inside_polygon(&square);
 
         assert!(res.is_ok());
-        assert_eq!(line_inside_square.first_point(), Point::new(150, 100));
-        assert_eq!(line_inside_square.last_point(), Point::new(150, 200));
+        assert_eq!(line_inside_square.first_point(), Point::new(150.0, 100.0));
+        assert_eq!(line_inside_square.last_point(), Point::new(150.0, 200.0));
     }
 }

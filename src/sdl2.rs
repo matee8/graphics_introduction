@@ -3,16 +3,15 @@ use sdl2::render::{Canvas, RenderTarget};
 use crate::{Color, Point, Renderer};
 
 impl From<Point> for sdl2::rect::Point {
-    #[inline]
     fn from(value: Point) -> Self {
-        Self::new(value.x, value.y)
+        Self::new(value.x.round() as i32, value.y.round() as i32)
     }
 }
 
 impl From<sdl2::rect::Point> for Point {
     #[inline]
     fn from(value: sdl2::rect::Point) -> Self {
-        Self::new(value.x, value.y)
+        Self::new(value.x.into(), value.y.into())
     }
 }
 

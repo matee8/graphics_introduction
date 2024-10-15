@@ -1,7 +1,9 @@
 use core::f64;
 use std::process;
 
-use graphics_introduction::{curve::OneColorParametricCurve, Color, Renderable};
+use graphics_introduction::{
+    curve::OneColorParametricCurve, Color, Renderable,
+};
 use sdl2::event::Event;
 
 const WIDTH: u32 = 640;
@@ -71,7 +73,8 @@ fn main() {
                 0_f64,
                 2_f64 * f64::consts::PI,
                 500,
-            ).unwrap_or_else(|_| {
+            )
+            .unwrap_or_else(|_| {
                 eprintln!("Invalid interval given for circle.");
                 process::exit(1);
             });

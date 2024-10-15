@@ -1,6 +1,5 @@
-use core::{
-    cmp::Ordering,
-    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
+use core::ops::{
+    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign,
 };
 
 pub mod curve;
@@ -10,18 +9,7 @@ pub mod polygon;
 #[cfg(feature = "sdl2")]
 pub mod sdl2;
 
-const MAX_POSITION: i32 = i32::MAX >> 1;
-const MIN_POSITION: i32 = i32::MIN >> 1;
-
-const fn clamp_position(value: i32) -> i32 {
-    if value > MAX_POSITION {
-        MAX_POSITION
-    } else if value < MIN_POSITION {
-        MIN_POSITION
-    } else {
-        value
-    }
-}
+const ERROR_MARGIN: f64 = 0.01;
 
 pub trait Renderer {
     type DrawError;
@@ -45,42 +33,35 @@ where
     fn render(&self, renderer: &mut T) -> Result<(), Self::Error>;
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Point {
-    x: i32,
-    y: i32,
+    x: f64,
+    y: f64,
 }
 
 impl Point {
     #[must_use]
     #[inline]
-    pub const fn new(x: i32, y: i32) -> Self {
-        Self {
-            x: clamp_position(x),
-            y: clamp_position(y),
-        }
+    pub const fn new(x: f64, y: f64) -> Self {
+        Self { x, y }
     }
 }
 
 impl From<(i32, i32)> for Point {
     #[inline]
     fn from(value: (i32, i32)) -> Self {
+        Self::new(value.0.into(), value.1.into())
+    }
+}
+
+impl From<(f64, f64)> for Point {
+    #[inline]
+    fn from(value: (f64, f64)) -> Self {
         Self::new(value.0, value.1)
     }
 }
 
-impl TryFrom<(u32, u32)> for Point {
-    type Error = <i32 as TryFrom<u32>>::Error;
-
-    #[inline]
-    fn try_from(value: (u32, u32)) -> Result<Self, Self::Error> {
-        let x = value.0.try_into()?;
-        let y = value.1.try_into()?;
-        Ok(Self::new(x, y))
-    }
-}
-
-impl From<Point> for (i32, i32) {
+impl From<Point> for (f64, f64) {
     #[inline]
     fn from(value: Point) -> Self {
         (value.x, value.y)
@@ -107,11 +88,11 @@ impl AddAssign for Point {
     }
 }
 
-impl Div<i32> for Point {
+impl Div<f64> for Point {
     type Output = Self;
 
     #[inline]
-    fn div(self, rhs: i32) -> Self::Output {
+    fn div(self, rhs: f64) -> Self::Output {
         Self {
             x: self.x / rhs,
             y: self.y / rhs,
@@ -119,19 +100,19 @@ impl Div<i32> for Point {
     }
 }
 
-impl DivAssign<i32> for Point {
+impl DivAssign<f64> for Point {
     #[inline]
-    fn div_assign(&mut self, rhs: i32) {
+    fn div_assign(&mut self, rhs: f64) {
         self.x /= rhs;
         self.y /= rhs;
     }
 }
 
-impl Mul<i32> for Point {
+impl Mul<f64> for Point {
     type Output = Self;
 
     #[inline]
-    fn mul(self, rhs: i32) -> Self::Output {
+    fn mul(self, rhs: f64) -> Self::Output {
         Self {
             x: self.x * rhs,
             y: self.y * rhs,
@@ -139,9 +120,9 @@ impl Mul<i32> for Point {
     }
 }
 
-impl MulAssign<i32> for Point {
+impl MulAssign<f64> for Point {
     #[inline]
-    fn mul_assign(&mut self, rhs: i32) {
+    fn mul_assign(&mut self, rhs: f64) {
         self.x *= rhs;
         self.y *= rhs;
     }
@@ -164,24 +145,6 @@ impl SubAssign for Point {
     fn sub_assign(&mut self, rhs: Self) {
         self.x -= rhs.x;
         self.y -= rhs.y;
-    }
-}
-
-impl PartialOrd for Point {
-    #[inline]
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for Point {
-    #[inline]
-    fn cmp(&self, other: &Self) -> Ordering {
-        let x_cmp = self.x.cmp(&other.x);
-        if x_cmp != Ordering::Equal {
-            return x_cmp;
-        }
-        self.y.cmp(&other.y)
     }
 }
 

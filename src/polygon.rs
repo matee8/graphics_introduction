@@ -84,12 +84,12 @@ where
             .map(|(first_point, last_point)| {
                 let slope = (last_point.x - first_point.x)
                     / (last_point.y - first_point.y);
-                first_point.x + (point.y - first_point.y) * slope
+                (point.y - first_point.y).mul_add(slope, first_point.x)
             })
             .filter(|&intersect_x| point.x < intersect_x)
             .count()
-            % 2
-            == 1
+            & 1
+            == 0
     }
 }
 
