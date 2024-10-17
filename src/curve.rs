@@ -23,7 +23,7 @@ impl OneColorParametricCurve {
         y_fn: Y,
         start: f64,
         end: f64,
-        n: i32,
+        num_segments: Option<i32>,
     ) -> Result<Self, WrongInterval>
     where
         X: Fn(f64) -> f64,
@@ -33,9 +33,11 @@ impl OneColorParametricCurve {
             return Err(WrongInterval);
         }
 
+        let num_segments = num_segments.unwrap_or(500);
+
         let mut segments = Vec::new();
 
-        let h = (end - start) / f64::from(n);
+        let h = (end - start) / f64::from(num_segments);
         let mut t = start;
         let mut point0 = Point::new(x_fn(t), y_fn(t));
 

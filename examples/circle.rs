@@ -74,7 +74,7 @@ fn main() {
                 |t| RADIUS * f64::sin(t) + f64::from(canvas_height >> 1),
                 0.0,
                 2.0 * f64::consts::PI,
-                500,
+                None,
             )
             .unwrap_or_else(|_| {
                 eprintln!("Invalid interval given for circle.");
