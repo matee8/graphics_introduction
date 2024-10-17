@@ -248,10 +248,10 @@ impl OneColorLine {
             .points()
             .iter()
             .map(|point| {
-                let signum = general_form
-                    .a
-                    .mul_add(point.x, general_form.b * point.y)
-                    .signum();
+                let signum =
+                    (general_form.a.mul_add(point.x, general_form.b * point.y)
+                        + general_form.c)
+                        .signum();
 
                 #[expect(
                     clippy::cast_possible_truncation,
@@ -616,7 +616,6 @@ mod tests {
             OneColorLine::new((150, 50).into(), (150, 250).into(), Color::RED)
                 .cut_inside_polygon(&square);
 
-        dbg!(&line_inside_square);
         assert!(line_inside_square.is_ok());
     }
 

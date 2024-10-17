@@ -94,7 +94,7 @@ where
             .filter(|&intersect_x| point.x < intersect_x)
             .count()
             & 1
-            == 0
+            == 1
     }
 }
 
