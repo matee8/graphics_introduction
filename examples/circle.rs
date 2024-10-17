@@ -9,6 +9,8 @@ use sdl2::event::Event;
 const WIDTH: u32 = 640;
 const HEIGHT: u32 = 480;
 
+const RADIUS: f64 = 200.0;
+
 fn main() {
     let sdl_ctx = sdl2::init().unwrap_or_else(|_| {
         eprintln!("Error initializing SDL2.");
@@ -68,10 +70,10 @@ fn main() {
 
             let circle = OneColorParametricCurve::new(
                 Color::RED,
-                |t| t * f32::cos(t as f32) as i32 + canvas_width >> 2,
-                |t| t * f32::sin(t as f32) as i32 + canvas_height >> 2,
-                0_f64,
-                2_f64 * f64::consts::PI,
+                |t| RADIUS * f64::cos(t) + f64::from(canvas_width >> 1),
+                |t| RADIUS * f64::sin(t) + f64::from(canvas_height >> 1),
+                0.0,
+                2.0 * f64::consts::PI,
                 500,
             )
             .unwrap_or_else(|_| {
@@ -79,7 +81,8 @@ fn main() {
                 process::exit(1);
             });
 
-            circle.render(&mut canvas).unwrap_or_else(|_| {
+            circle.render(&mut canvas).unwrap_or_else(|e| {
+                eprintln!("{e}");
                 eprintln!("Couldn't draw circle.");
                 process::exit(1);
             });

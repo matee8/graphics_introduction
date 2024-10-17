@@ -2,7 +2,7 @@ use thiserror::Error;
 
 use crate::{
     line::{LineDrawError, OneColorLine},
-    Color, Point, Renderable, Renderer, ERROR_MARGIN,
+    Color, Point, Renderable, Renderer, SMALL_ERROR_MARGIN,
 };
 
 #[derive(Debug)]
@@ -35,7 +35,7 @@ impl OneColorParametricCurve {
 
         let mut segments = Vec::new();
 
-        let h = end - start / f64::from(n);
+        let h = (end - start) / f64::from(n);
         let mut t = start;
         let mut point0 = Point::new(x_fn(t), y_fn(t));
 
@@ -43,7 +43,7 @@ impl OneColorParametricCurve {
             clippy::while_float,
             reason = "Algorithm has to be implemented this way."
         )]
-        while (t - end).abs() < ERROR_MARGIN {
+        while (t - end).abs() > SMALL_ERROR_MARGIN {
             t += h;
             let point1 = Point::new(x_fn(t), y_fn(t));
             segments.push(OneColorLine::new(point0, point1, color));
