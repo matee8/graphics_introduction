@@ -62,6 +62,11 @@ pub struct OneColorLine {
 }
 
 #[non_exhaustive]
+#[derive(Debug, Error, Copy, Clone)]
+#[error("Points are too far apart.")]
+pub struct InvalidPoints;
+
+#[non_exhaustive]
 #[derive(Debug, Error, Clone, Copy)]
 pub enum CutLineInsidePolygonError {
     #[error("Line is fully outside polygon.")]
@@ -72,12 +77,17 @@ pub enum CutLineInsidePolygonError {
     NotEnoughIntersections,
     #[error("Intersection with polygon isn't in the original line.")]
     InvalidIntersection,
+    #[error("One of the signums is NaN.")]
+    InvalidLines,
 }
 
 impl OneColorLine {
-    #[must_use]
     #[inline]
-    pub fn new_45_deg(start: Point, end: Point, color: Color) -> Self {
+    pub fn new_45_deg(
+        start: Point,
+        end: Point,
+        color: Color,
+    ) -> Result<Self, InvalidPoints> {
         let distance_x = end.x - start.x;
         let distance_y = start.y - end.y;
         let mut decision = 2.0_f64.mul_add(distance_y, -distance_x);
@@ -85,7 +95,22 @@ impl OneColorLine {
         let mut x = start.x;
         let mut y = start.y;
 
-        for _ in 0..distance_x as i32 {
+        let loop_condition = if distance_x > f64::from(i32::MAX)
+            || distance_x < f64::from(i32::MIN)
+            || distance_x.is_nan()
+            || distance_x.is_infinite()
+        {
+            Err(InvalidPoints)
+        } else {
+            #[expect(
+                clippy::cast_possible_truncation,
+                clippy::as_conversions,
+                reason = "If distance_x is invalid as i32, the function returns early."
+            )]
+            Ok(distance_x as i32)
+        }?;
+
+        for _ in 0..loop_condition {
             points.push((x, y).into());
 
             if decision > 0.0 {
@@ -98,7 +123,7 @@ impl OneColorLine {
             x += 1.0;
         }
 
-        Self { color, points }
+        Ok(Self { color, points })
     }
 
     #[must_use]
@@ -223,12 +248,23 @@ impl OneColorLine {
             .points()
             .iter()
             .map(|point| {
-                general_form
+                let signum = general_form
                     .a
                     .mul_add(point.x, general_form.b * point.y)
-                    .signum() as i8
+                    .signum();
+
+                #[expect(
+                    clippy::cast_possible_truncation,
+                    clippy::as_conversions,
+                    reason = "NaN case is handled as an error, otherwise f64::signum either returns -1, 0 or 1."
+                )]
+                if signum.is_nan() {
+                    Err(CutLineInsidePolygonError::InvalidLines)
+                } else {
+                    Ok(signum as i8)
+                }
             })
-            .collect();
+            .collect::<Result<_, _>>()?;
 
         if signums.first().is_some_and(|first| {
             signums.iter().skip(1).all(|elem| first == elem)
