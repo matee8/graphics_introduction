@@ -236,6 +236,10 @@ impl OneColorLine {
             return Err(CutLineInsidePolygonError::Outside);
         }
 
+        #[expect(
+            clippy::indexing_slicing,
+            reason = "slice::windows only panics if size is 0, but we can't create a polygon with 0 sides."
+        )]
         let intersections: Vec<Point> = signums
             .windows(2)
             .map(|signum| (signum[0], signum[1]))
@@ -252,26 +256,26 @@ impl OneColorLine {
             })
             .collect();
 
-        if intersections.len() != 2 {
-            return Err(CutLineInsidePolygonError::NotEnoughIntersections);
-        }
-
         let start = if polygon_contains_start {
             start
         } else {
-            intersections[0]
+            let Some(intersection) = intersections.first() else {
+                return Err(CutLineInsidePolygonError::NotEnoughIntersections);
+            };
+            *intersection
         };
 
-        let end = polygon_contains_end.map_or_else(
-            || {
-                if polygon.contains(end) {
-                    end
-                } else {
-                    intersections[1]
-                }
-            },
-            |flag| if flag { end } else { intersections[1] },
-        );
+        let polygon_contains_end = polygon_contains_end
+            .map_or_else(|| polygon.contains(end), |old_value| old_value);
+
+        let end = if polygon_contains_end {
+            end
+        } else {
+            let Some(intersection) = intersections.get(1) else {
+                return Err(CutLineInsidePolygonError::NotEnoughIntersections);
+            };
+            *intersection
+        };
 
         Ok((start, end))
     }
@@ -339,11 +343,19 @@ impl LineSegment for OneColorLine {
 
     #[inline]
     fn first_point(&self) -> Point {
+        #[expect(
+            clippy::indexing_slicing,
+            reason = "OneColorLine's points cannot be empty at any point in time."
+        )]
         self.points[0]
     }
 
     #[inline]
     fn last_point(&self) -> Point {
+        #[expect(
+            clippy::indexing_slicing,
+            reason = "OneColorLine's points cannot be empty at any point in time."
+        )]
         self.points[self.points.len() - 1]
     }
 }

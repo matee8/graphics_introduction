@@ -105,3 +105,7 @@ missing_trait_methods = "allow"
 float_arithmetic = "allow"
 default_numeric_fallback = "allow"
 missing_asserts_for_indexing = "allow"
+arithmetic_side_effects = "allow"
+
+# cast_possible_truncation = "allow"
+# as_conversions = "allow"

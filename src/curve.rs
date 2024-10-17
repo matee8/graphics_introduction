@@ -39,6 +39,10 @@ impl OneColorParametricCurve {
         let mut t = start;
         let mut point0 = Point::new(x_fn(t), y_fn(t));
 
+        #[expect(
+            clippy::while_float,
+            reason = "Algorithm has to be implemented this way."
+        )]
         while (t - end).abs() < ERROR_MARGIN {
             t += h;
             let point1 = Point::new(x_fn(t), y_fn(t));
@@ -63,11 +67,13 @@ where
     {
         let old_color = renderer.current_color();
 
-        if self.segments.is_empty() {
+        let line_color = if let Some(first_segment) = self.segments.first() {
+            first_segment.color()
+        } else {
             return Err(LineDrawError::Empty);
-        }
+        };
 
-        renderer.set_color(self.segments[0].color());
+        renderer.set_color(line_color);
         for segment in &self.segments {
             segment.render(renderer)?;
         }

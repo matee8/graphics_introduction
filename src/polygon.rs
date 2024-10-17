@@ -31,10 +31,14 @@ where
         points: &[Point],
         color: Color,
     ) -> Result<Self, NotEnoughPointsError> {
-        if points.len() < 2 {
+        if points.len() < 3 {
             return Err(NotEnoughPointsError);
         }
 
+        #[expect(
+            clippy::indexing_slicing,
+            reason = "Points has to have at least a size of 3 at this point."
+        )]
         let edges: Vec<OneColorLine> = points
             .windows(2)
             .map(|points| (&points[0], &points[1]))
@@ -68,16 +72,17 @@ where
 
     #[must_use]
     #[inline]
+    #[expect(
+        clippy::indexing_slicing,
+        reason = "Polygon::points() has to have at least a size of 3 at this point."
+    )]
     pub fn contains(&self, point: Point) -> bool {
-        let num_points = self.points().len();
+        let points = self.points();
 
         self.points()
             .windows(2)
             .map(|edge| (edge[0], edge[1]))
-            .chain(iter::once((
-                self.points()[num_points - 1],
-                self.points()[0],
-            )))
+            .chain(iter::once((points[points.len() - 1], points[0])))
             .filter(|&(first_point, last_point)| {
                 (first_point.y > point.y) != (last_point.y > point.y)
             })
@@ -109,10 +114,14 @@ where
 {
     #[inline]
     pub fn new_from_lines(lines: &[T]) -> Result<Self, PolygonFromLinesError> {
-        if lines.is_empty() {
+        if lines.len() < 3 {
             return Err(PolygonFromLinesError::NotEnoughLines);
         }
 
+        #[expect(
+            clippy::indexing_slicing,
+            reason = "Lines has to have at least a size of 2 at this point."
+        )]
         if !lines
             .windows(2)
             .map(|lines| (&lines[0], &lines[1]))
