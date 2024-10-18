@@ -5,7 +5,6 @@ use graphics_introduction::{
     curve::OneColorParametricCurve, Color, Renderable,
 };
 use sdl2::event::Event;
-
 const WIDTH: u32 = 640;
 const HEIGHT: u32 = 480;
 

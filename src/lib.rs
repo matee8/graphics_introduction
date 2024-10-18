@@ -10,7 +10,7 @@ pub mod polygon;
 pub mod sdl2;
 
 const SMALL_ERROR_MARGIN: f64 = 0.001;
-const ERROR_MARGIN: f64 = 0.56;
+const ERROR_MARGIN: f64 = 0.7;
 
 pub trait Renderer {
     type DrawError;
