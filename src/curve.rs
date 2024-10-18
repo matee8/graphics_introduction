@@ -88,7 +88,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{curve::OneColorParametricCurve, Color, Point, Renderer};
+    use crate::{
+        curve::OneColorParametricCurve, line::LineSegment, Color, Point,
+        Renderer, ERROR_MARGIN,
+    };
 
     struct MockRenderer;
 
@@ -116,5 +119,51 @@ mod tests {
         fn current_color(&self) -> Color {
             unimplemented!()
         }
+    }
+
+    #[test]
+    fn parametric_curve_new_is_ok() {
+        let curve = OneColorParametricCurve::new(
+            Color::RED,
+            |t| t,
+            |t| t,
+            100.0,
+            200.0,
+            None,
+        );
+
+        assert!(curve.is_ok());
+    }
+
+    #[test]
+    fn parametric_curve_new_has_correct_endpoints() {
+        let start = Point::new(100.0, 100.0);
+        let end = Point::new(200.0, 200.0);
+
+        let curve = OneColorParametricCurve::new(
+            Color::RED,
+            |t| t,
+            |t| t,
+            100.0,
+            200.0,
+            None,
+        );
+
+        let curve = curve.unwrap();
+        let first_segment = curve.segments.first().unwrap();
+        let (x, y) =
+            (first_segment.first_point().x, first_segment.first_point().y);
+        assert!(
+            (x - start.x).abs() < ERROR_MARGIN
+                && (y - start.y).abs() < ERROR_MARGIN
+        );
+
+        let last_segment = curve.segments.iter().last().unwrap();
+        let (x, y) =
+            (last_segment.first_point().x, last_segment.first_point().y);
+        assert!(
+            (x - end.x).abs() < ERROR_MARGIN
+                && (y - end.y).abs() < ERROR_MARGIN
+        );
     }
 }
