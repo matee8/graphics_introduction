@@ -86,11 +86,43 @@ where
     }
 }
 
+#[derive(Debug)]
+pub struct OneColorImplicitCurve {
+    color: Color,
+    points: Vec<Point>,
+}
+
+impl OneColorImplicitCurve {
+    #[inline]
+    pub fn new<F>(
+        curve: F,
+        color: Color,
+        width: i32,
+        height: i32,
+    ) -> Self
+    where
+        F: Fn(f64, f64) -> f64,
+    {
+        let mut points = Vec::new();
+
+        for i in 0..width {
+            for j in 0..height {
+                if curve(f64::from(i), f64::from(j)).abs() < SMALL_ERROR_MARGIN {
+                    points.push((i, j).into());
+                }
+            }
+        }
+
+        Self { color, points }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{
-        curve::OneColorParametricCurve, line::LineSegment, Color, Point,
-        Renderer, ERROR_MARGIN,
+        curve::{OneColorImplicitCurve, OneColorParametricCurve},
+        line::LineSegment,
+        Color, Point, Renderer, ERROR_MARGIN,
     };
 
     struct MockRenderer;
@@ -122,7 +154,7 @@ mod tests {
     }
 
     #[test]
-    fn parametric_curve_new_is_ok() {
+    fn new_parametric_curve_is_ok() {
         let curve = OneColorParametricCurve::new(
             Color::RED,
             |t| t,
@@ -136,7 +168,7 @@ mod tests {
     }
 
     #[test]
-    fn parametric_curve_new_has_correct_endpoints() {
+    fn new_parametric_curve_has_correct_endpoints() {
         let start = Point::new(100.0, 100.0);
         let end = Point::new(200.0, 200.0);
 
@@ -165,5 +197,18 @@ mod tests {
             (x - end.x).abs() < ERROR_MARGIN
                 && (y - end.y).abs() < ERROR_MARGIN
         );
+    }
+
+    #[test]
+    fn new_implicit_curve_has_correct_endpoints() {
+        let curve = OneColorImplicitCurve::new(
+            |x, _| x,
+            Color::RED,
+            1000,
+            1000,
+        );
+
+        assert_eq!(curve.points.first(), Some(&Point::new(0.0, 0.0)));
+        assert_eq!(curve.points.iter().last(), Some(&Point::new(0.0, 999.0)));
     }
 }
