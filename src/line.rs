@@ -169,15 +169,14 @@ impl OneColorLine {
     }
 
     #[inline]
-    pub fn new_inside_polygon<T, R>(
+    pub fn new_inside_polygon<T>(
         start: Point,
         end: Point,
         color: Color,
-        polygon: &Polygon<T, R>,
+        polygon: &Polygon<T>,
     ) -> Result<Self, CutLineInsidePolygonError>
     where
-        T: LineSegment + Renderable<R> + Into<LineGeneralForm>,
-        R: Renderer,
+        T: LineSegment + Into<LineGeneralForm>,
     {
         let (start, end) =
             Self::get_start_end_inside_polygon(start, end, polygon)?;
@@ -192,13 +191,12 @@ impl OneColorLine {
     }
 
     #[inline]
-    pub fn cut_inside_polygon<T, R>(
+    pub fn cut_inside_polygon<T>(
         &mut self,
-        polygon: &Polygon<T, R>,
+        polygon: &Polygon<T>,
     ) -> Result<(), CutLineInsidePolygonError>
     where
-        T: Renderable<R> + LineSegment + Into<LineGeneralForm>,
-        R: Renderer,
+        T: LineSegment + Into<LineGeneralForm>,
     {
         let (start, end) = Self::get_start_end_inside_polygon(
             self.first_point(),
@@ -223,14 +221,13 @@ impl OneColorLine {
         Ok(())
     }
 
-    fn get_start_end_inside_polygon<T, R>(
+    fn get_start_end_inside_polygon<T>(
         start: Point,
         end: Point,
-        polygon: &Polygon<T, R>,
+        polygon: &Polygon<T>,
     ) -> Result<(Point, Point), CutLineInsidePolygonError>
     where
-        T: Renderable<R> + LineSegment + Into<LineGeneralForm>,
-        R: Renderer,
+        T: LineSegment + Into<LineGeneralForm>,
     {
         let polygon_contains_start = polygon.contains(start);
         let mut polygon_contains_end = None;

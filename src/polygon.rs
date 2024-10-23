@@ -1,4 +1,4 @@
-use core::{iter, marker::PhantomData};
+use core::iter;
 
 use thiserror::Error;
 
@@ -8,13 +8,11 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct Polygon<T, R>
+pub struct Polygon<T>
 where
-    T: LineSegment + Renderable<R>,
-    R: Renderer,
+    T: LineSegment,
 {
     edges: Vec<T>,
-    _renderer: PhantomData<fn() -> R>,
 }
 
 #[non_exhaustive]
@@ -22,10 +20,7 @@ where
 #[error("At least two points are required to create a polygon.")]
 pub struct NotEnoughPointsError;
 
-impl<R> Polygon<OneColorLine, R>
-where
-    R: Renderer,
-{
+impl Polygon<OneColorLine> {
     #[inline]
     pub fn new(
         points: &[Point],
@@ -46,17 +41,13 @@ where
             .map(|points| OneColorLine::new(*points.0, *points.1, color))
             .collect();
 
-        Ok(Self {
-            edges,
-            _renderer: PhantomData,
-        })
+        Ok(Self { edges })
     }
 }
 
-impl<T, R> Polygon<T, R>
+impl<T> Polygon<T>
 where
-    T: LineSegment + Renderable<R>,
-    R: Renderer,
+    T: LineSegment,
 {
     #[must_use]
     #[inline]
@@ -107,10 +98,9 @@ pub enum PolygonFromLinesError {
     LinesDontTouch,
 }
 
-impl<T, R> Polygon<T, R>
+impl<T> Polygon<T>
 where
-    T: LineSegment + Renderable<R> + Clone,
-    R: Renderer,
+    T: LineSegment + Clone,
 {
     #[inline]
     pub fn new_from_lines(lines: &[T]) -> Result<Self, PolygonFromLinesError> {
@@ -133,12 +123,11 @@ where
 
         Ok(Self {
             edges: Vec::from(lines),
-            _renderer: PhantomData,
         })
     }
 }
 
-impl<T, R> Renderable<R> for Polygon<T, R>
+impl<T, R> Renderable<R> for Polygon<T>
 where
     T: LineSegment + Renderable<R>,
     R: Renderer,
@@ -159,35 +148,7 @@ where
 mod tests {
     use std::iter;
 
-    use crate::{line::OneColorLine, polygon::Polygon, Color, Point, Renderer};
-
-    struct MockRenderer;
-
-    impl Renderer for MockRenderer {
-        type DrawError = ();
-
-        fn set_color(&mut self, color: Color) {
-            let _ = color;
-            unimplemented!()
-        }
-
-        fn draw_point(&mut self, point: Point) -> Result<(), Self::DrawError> {
-            let _ = point;
-            unimplemented!()
-        }
-
-        fn draw_points(
-            &mut self,
-            points: &[Point],
-        ) -> Result<(), Self::DrawError> {
-            let _ = points;
-            unimplemented!()
-        }
-
-        fn current_color(&self) -> Color {
-            unimplemented!()
-        }
-    }
+    use crate::{line::OneColorLine, polygon::Polygon, Color};
 
     #[test]
     fn new_polygon_has_correct_points() {
@@ -197,8 +158,7 @@ mod tests {
             (200, 200).into(),
             (200, 100).into(),
         ];
-        let polygon: Polygon<_, MockRenderer> =
-            Polygon::new(&points, Color::RED).unwrap();
+        let polygon = Polygon::new(&points, Color::RED).unwrap();
 
         assert_eq!(polygon.points(), points);
     }
@@ -212,8 +172,7 @@ mod tests {
             (200, 100).into(),
         ];
         let color = Color::RED;
-        let polygon: Polygon<_, MockRenderer> =
-            Polygon::new(&points, color).unwrap();
+        let polygon = Polygon::new(&points, color).unwrap();
 
         let lines: Vec<OneColorLine> = points
             .windows(2)
@@ -229,7 +188,7 @@ mod tests {
 
     #[test]
     fn polygon_contains_returns_false_if_not_inside() {
-        let polygon: Polygon<_, MockRenderer> = Polygon::new(
+        let polygon = Polygon::new(
             &[
                 (186, 14).into(),
                 (186, 44).into(),
@@ -247,7 +206,7 @@ mod tests {
 
     #[test]
     fn polygon_contains_returns_true_if_inside() {
-        let polygon: Polygon<_, MockRenderer> = Polygon::new(
+        let polygon = Polygon::new(
             &[(0, 0).into(), (5, 0).into(), (5, 5).into(), (0, 5).into()],
             Color::RED,
         )

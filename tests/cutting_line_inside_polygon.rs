@@ -1,13 +1,10 @@
-use common::MockRenderer;
 use graphics_introduction::{
     line::{LineSegment, OneColorLine},
     polygon::Polygon,
     Color, Point,
 };
 
-mod common;
-
-fn create_polygon() -> Polygon<OneColorLine, MockRenderer> {
+fn create_polygon() -> Polygon<OneColorLine> {
     Polygon::new(
         &[
             ((100, 100).into()),

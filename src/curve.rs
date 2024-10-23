@@ -128,7 +128,6 @@ where
 
         renderer.set_color(self.color);
         for point in &self.points {
-            println!("{:?}", point);
             renderer.draw_point(*point)?;
         }
 
