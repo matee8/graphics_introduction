@@ -3,7 +3,7 @@ use std::process;
 
 use clap::Parser;
 use graphics_introduction::{
-    curve::OneColorParametricCurve, Color, Renderable,
+    curve::OneColorCurve, Color, Renderable,
 };
 use sdl2::event::Event;
 
@@ -82,7 +82,7 @@ fn main() {
                     process::exit(1);
                 });
 
-            let epicycloid = OneColorParametricCurve::new(
+            let epicycloid = OneColorCurve::new_parametric(
                 Color::RED,
                 |t| {
                     (f64::from(args.a + args.b) * f64::cos(t)
