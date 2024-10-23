@@ -3,7 +3,7 @@ name = "graphics_introduction"
 version = "0.1.0"
 edition = "2021"
 
-repository = "https://github.com/matee8/graphics-introduction.git"
+repository = "https://github.com/matee8/graphics_introduction.git"
 readme = "README.md"
 
 categories = ["graphics", "rendering", "rendering::engine"]
