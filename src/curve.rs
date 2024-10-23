@@ -1,13 +1,16 @@
 use thiserror::Error;
 
 use crate::{
-    line::{LineDrawError, OneColorLine},
+    line::{LineSegment, OneColorLine},
     Color, Point, Renderable, Renderer, SMALL_ERROR_MARGIN,
 };
 
 #[derive(Debug)]
-pub struct OneColorParametricCurve {
-    segments: Vec<OneColorLine>,
+pub struct ParametricCurve<T> 
+where
+    T: LineSegment
+{
+    segments: Vec<T>,
 }
 
 #[non_exhaustive]
@@ -15,7 +18,7 @@ pub struct OneColorParametricCurve {
 #[error("Wrong interval.")]
 pub struct WrongInterval;
 
-impl OneColorParametricCurve {
+impl ParametricCurve<OneColorLine> {
     #[inline]
     pub fn new<X, Y>(
         color: Color,
@@ -56,26 +59,18 @@ impl OneColorParametricCurve {
     }
 }
 
-impl<T> Renderable<T> for OneColorParametricCurve
+impl<T, R> Renderable<R> for ParametricCurve<T>
 where
-    T: Renderer,
+    T: LineSegment + Renderable<R>,
+    R: Renderer,
 {
-    type Error = LineDrawError<T>;
+    type Error = <T as Renderable<R>>::Error;
 
     #[inline]
-    fn render(&self, renderer: &mut T) -> Result<(), Self::Error>
-    where
-        T: Renderer,
+    fn render(&self, renderer: &mut R) -> Result<(), Self::Error>
     {
         let old_color = renderer.current_color();
 
-        let line_color = if let Some(first_segment) = self.segments.first() {
-            first_segment.color()
-        } else {
-            return Err(LineDrawError::Empty);
-        };
-
-        renderer.set_color(line_color);
         for segment in &self.segments {
             segment.render(renderer)?;
         }
@@ -140,42 +135,14 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        curve::{OneColorImplicitCurve, OneColorParametricCurve},
+        curve::{OneColorImplicitCurve, ParametricCurve},
         line::LineSegment,
-        Color, Point, Renderer, ERROR_MARGIN,
+        Color, Point, ERROR_MARGIN,
     };
-
-    struct MockRenderer;
-
-    impl Renderer for MockRenderer {
-        type DrawError = ();
-
-        fn set_color(&mut self, color: Color) {
-            let _ = color;
-            unimplemented!()
-        }
-
-        fn draw_point(&mut self, point: Point) -> Result<(), Self::DrawError> {
-            let _ = point;
-            unimplemented!()
-        }
-
-        fn draw_points(
-            &mut self,
-            points: &[Point],
-        ) -> Result<(), Self::DrawError> {
-            let _ = points;
-            unimplemented!()
-        }
-
-        fn current_color(&self) -> Color {
-            unimplemented!()
-        }
-    }
 
     #[test]
     fn new_parametric_curve_is_ok() {
-        let curve = OneColorParametricCurve::new(
+        let curve = ParametricCurve::new(
             Color::RED,
             |t| t,
             |t| t,
@@ -192,7 +159,7 @@ mod tests {
         let start = Point::new(100.0, 100.0);
         let end = Point::new(200.0, 200.0);
 
-        let curve = OneColorParametricCurve::new(
+        let curve = ParametricCurve::new(
             Color::RED,
             |t| t,
             |t| t,
