@@ -7,12 +7,10 @@ use crate::{
     Color, Point, Renderable, Renderer, SMALL_ERROR_MARGIN,
 };
 
-#[derive(Debug)]
-pub struct ParametricCurve<T>
-where
-    T: LineSegment,
-{
-    segments: Vec<T>,
+#[derive(Debug, Clone, PartialEq)]
+pub struct OneColorCurve {
+    points: Vec<Point>,
+    color: Color,
 }
 
 #[non_exhaustive]
@@ -20,9 +18,18 @@ where
 #[error("Wrong interval.")]
 pub struct WrongInterval;
 
-impl ParametricCurve<OneColorLine> {
+#[non_exhaustive]
+#[derive(Debug, Error, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum CurveFromSegmentsError {
+    #[error("At least 2 lines are required to create a curve.")]
+    NotEnoughLines,
+    #[error("The lines are required to touch to create a curve.")]
+    LinesDontTouch,
+}
+
+impl OneColorCurve {
     #[inline]
-    pub fn new<X, Y>(
+    pub fn new_parametric<X, Y>(
         color: Color,
         x_fn: X,
         y_fn: Y,
@@ -40,11 +47,11 @@ impl ParametricCurve<OneColorLine> {
 
         let num_segments = num_segments.unwrap_or(500);
 
-        let mut segments = Vec::new();
+        let mut points = Vec::new();
 
         let h = (end - start) / f64::from(num_segments);
         let mut t = start;
-        let mut point0 = Point::new(x_fn(t), y_fn(t));
+        let mut first_point = Point::new(x_fn(t), y_fn(t));
 
         #[expect(
             clippy::while_float,
@@ -52,30 +59,23 @@ impl ParametricCurve<OneColorLine> {
         )]
         while (t - end).abs() > SMALL_ERROR_MARGIN {
             t += h;
-            let point1 = Point::new(x_fn(t), y_fn(t));
-            segments.push(OneColorLine::new(point0, point1, color));
-            point0 = point1;
+            let last_point = Point::new(x_fn(t), y_fn(t));
+            let segment = OneColorLine::new(first_point, last_point, color);
+            points.extend_from_slice(segment.points());
+            first_point = last_point;
         }
 
-        Ok(Self { segments })
+        Ok(Self { points, color })
     }
-}
 
-#[non_exhaustive]
-#[derive(Debug, Error, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum CurveFromSegmentsError {
-    #[error("At least 2 lines are required to create a curve.")]
-    NotEnoughLines,
-    #[error("The lines are required to touch to create a curve.")]
-    LinesDontTouch,
-}
-
-impl<T> ParametricCurve<T>
-where
-    T: LineSegment + Clone,
-{
     #[inline]
-    pub fn new_from_lines(lines: &[T]) -> Result<Self, CurveFromSegmentsError> {
+    pub fn new_from_lines<T>(
+        lines: &[T],
+        color: Color,
+    ) -> Result<Self, CurveFromSegmentsError>
+    where
+        T: LineSegment + Clone,
+    {
         if lines.len() < 2 {
             return Err(CurveFromSegmentsError::NotEnoughLines);
         }
@@ -93,42 +93,21 @@ where
             return Err(CurveFromSegmentsError::LinesDontTouch);
         }
 
-        Ok(Self {
-            segments: Vec::from(lines),
-        })
-    }
-}
+        let points = lines
+            .iter()
+            .flat_map(|line| line.points().iter().copied())
+            .collect();
 
-impl<T, R> Renderable<R> for ParametricCurve<T>
-where
-    T: LineSegment + Renderable<R>,
-    R: Renderer,
-{
-    type Error = <T as Renderable<R>>::Error;
+        Ok(Self { points, color })
+    }
 
     #[inline]
-    fn render(&self, renderer: &mut R) -> Result<(), Self::Error> {
-        let old_color = renderer.current_color();
-
-        for segment in &self.segments {
-            segment.render(renderer)?;
-        }
-
-        renderer.set_color(old_color);
-
-        Ok(())
-    }
-}
-
-#[derive(Debug)]
-pub struct OneColorImplicitCurve {
-    color: Color,
-    points: Vec<Point>,
-}
-
-impl OneColorImplicitCurve {
-    #[inline]
-    pub fn new<F>(curve: F, color: Color, width: i32, height: i32) -> Self
+    pub fn new_implicit<F>(
+        curve: F,
+        color: Color,
+        width: i32,
+        height: i32,
+    ) -> Self
     where
         F: Fn(f64, f64) -> f64,
     {
@@ -143,27 +122,40 @@ impl OneColorImplicitCurve {
             }
         }
 
-        Self { color, points }
+        Self { points, color }
     }
 }
 
-impl<T> Renderable<T> for OneColorImplicitCurve
+#[non_exhaustive]
+#[derive(Debug, Error)]
+pub enum CurveDrawError<T>
 where
     T: Renderer,
 {
-    type Error = T::DrawError;
+    #[error("Couldn't draw the curve.")]
+    Draw(T::DrawError),
+    #[error("Curve was empty.")]
+    Empty,
+}
+
+impl<R> Renderable<R> for OneColorCurve
+where
+    R: Renderer,
+{
+    type Error = CurveDrawError<R>;
 
     #[inline]
-    fn render(&self, renderer: &mut T) -> Result<(), Self::Error>
-    where
-        T: Renderer,
-    {
+    fn render(&self, renderer: &mut R) -> Result<(), Self::Error> {
         let old_color = renderer.current_color();
 
-        renderer.set_color(self.color);
-        for point in &self.points {
-            renderer.draw_point(*point)?;
+        if self.points.is_empty() {
+            return Err(CurveDrawError::Empty);
         }
+
+        renderer.set_color(self.color);
+        renderer
+            .draw_points(&self.points)
+            .map_err(CurveDrawError::Draw)?;
 
         renderer.set_color(old_color);
 
@@ -173,16 +165,18 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        curve::{OneColorImplicitCurve, ParametricCurve},
-        line::LineSegment,
-        Color, Point, ERROR_MARGIN,
-    };
+    use crate::{curve::OneColorCurve, Color, Point, ERROR_MARGIN};
 
     #[test]
     fn new_parametric_curve_is_ok() {
-        let curve =
-            ParametricCurve::new(Color::RED, |t| t, |t| t, 100.0, 200.0, None);
+        let curve = OneColorCurve::new_parametric(
+            Color::RED,
+            |t| t,
+            |t| t,
+            100.0,
+            200.0,
+            None,
+        );
 
         assert!(curve.is_ok());
     }
@@ -192,31 +186,33 @@ mod tests {
         let start = Point::new(100.0, 100.0);
         let end = Point::new(200.0, 200.0);
 
-        let curve =
-            ParametricCurve::new(Color::RED, |t| t, |t| t, 100.0, 200.0, None);
+        let curve = OneColorCurve::new_parametric(
+            Color::RED,
+            |t| t,
+            |t| t,
+            100.0,
+            200.0,
+            None,
+        )
+        .unwrap();
 
-        let curve = curve.unwrap();
-        let first_segment = curve.segments.first().unwrap();
-        let (x, y) =
-            (first_segment.first_point().x, first_segment.first_point().y);
+        let first = curve.points.first().unwrap();
         assert!(
-            (x - start.x).abs() < ERROR_MARGIN
-                && (y - start.y).abs() < ERROR_MARGIN
+            (first.x - start.x).abs() < ERROR_MARGIN
+                && (first.y - start.y).abs() < ERROR_MARGIN
         );
 
-        let last_segment = curve.segments.iter().last().unwrap();
-        let (x, y) =
-            (last_segment.first_point().x, last_segment.first_point().y);
+        let last = curve.points.iter().last().unwrap();
         assert!(
-            (x - end.x).abs() < ERROR_MARGIN
-                && (y - end.y).abs() < ERROR_MARGIN
+            (last.x - end.x).abs() < ERROR_MARGIN
+                && (last.y - end.y).abs() < ERROR_MARGIN
         );
     }
 
     #[test]
     fn new_implicit_curve_has_correct_endpoints() {
         let curve =
-            OneColorImplicitCurve::new(|x, _| x, Color::RED, 1000, 1000);
+            OneColorCurve::new_implicit(|x, _| x, Color::RED, 1000, 1000);
 
         assert_eq!(curve.points.first(), Some(&Point::new(0.0, 0.0)));
         assert_eq!(curve.points.iter().last(), Some(&Point::new(0.0, 999.0)));

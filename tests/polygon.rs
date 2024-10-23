@@ -1,10 +1,10 @@
+use core::iter;
+
 use graphics_introduction::{
     line::{LineSegment, OneColorLine},
     polygon::{Polygon, PolygonFromLinesError},
     Color, Point,
 };
-
-use core::iter;
 
 #[test]
 fn polygon_from_one_line_is_error() {
@@ -14,10 +14,7 @@ fn polygon_from_one_line_is_error() {
     let polygon = Polygon::new_from_lines(&[line]);
 
     assert!(polygon.is_err());
-    assert_eq!(
-        polygon.unwrap_err(),
-        PolygonFromLinesError::NotEnoughLines
-    );
+    assert_eq!(polygon.unwrap_err(), PolygonFromLinesError::NotEnoughLines);
 }
 
 #[test]
@@ -61,9 +58,7 @@ fn polygon_from_four_touching_lines_has_correct_points() {
         .windows(2)
         .map(|points| (points[0], points[1]))
         .chain(iter::once((points[points.len() - 1], points[0])))
-        .map(|(start, end)| {
-            OneColorLine::new(start, end, Color::RED)
-        })
+        .map(|(start, end)| OneColorLine::new(start, end, Color::RED))
         .collect();
 
     let polygon = Polygon::new_from_lines(&lines).unwrap();
