@@ -1,3 +1,5 @@
+use core::iter;
+
 use thiserror::Error;
 
 use crate::{
@@ -6,9 +8,9 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct ParametricCurve<T> 
+pub struct ParametricCurve<T>
 where
-    T: LineSegment
+    T: LineSegment,
 {
     segments: Vec<T>,
 }
@@ -59,6 +61,44 @@ impl ParametricCurve<OneColorLine> {
     }
 }
 
+#[non_exhaustive]
+#[derive(Debug, Error, Clone)]
+pub enum CurveFromSegmentsError {
+    #[error("At least 2 lines are required to create a curve.")]
+    NotEnoughLines,
+    #[error("The lines are required to touch to create a curve.")]
+    LinesDontTouch,
+}
+
+impl<T> ParametricCurve<T>
+where
+    T: LineSegment + Clone,
+{
+    #[inline]
+    pub fn new_from_lines(lines: &[T]) -> Result<Self, CurveFromSegmentsError> {
+        if lines.len() < 2 {
+            return Err(CurveFromSegmentsError::NotEnoughLines);
+        }
+
+        #[expect(
+            clippy::indexing_slicing,
+            reason = "Lines has to have at least a size of 2 at this point."
+        )]
+        if !lines
+            .windows(2)
+            .map(|lines| (&lines[0], &lines[1]))
+            .chain(iter::once((&lines[lines.len() - 1], &lines[0])))
+            .all(|lines| lines.0.last_point() == lines.1.first_point())
+        {
+            return Err(CurveFromSegmentsError::LinesDontTouch);
+        }
+
+        Ok(Self {
+            segments: Vec::from(lines),
+        })
+    }
+}
+
 impl<T, R> Renderable<R> for ParametricCurve<T>
 where
     T: LineSegment + Renderable<R>,
@@ -67,8 +107,7 @@ where
     type Error = <T as Renderable<R>>::Error;
 
     #[inline]
-    fn render(&self, renderer: &mut R) -> Result<(), Self::Error>
-    {
+    fn render(&self, renderer: &mut R) -> Result<(), Self::Error> {
         let old_color = renderer.current_color();
 
         for segment in &self.segments {
@@ -142,14 +181,8 @@ mod tests {
 
     #[test]
     fn new_parametric_curve_is_ok() {
-        let curve = ParametricCurve::new(
-            Color::RED,
-            |t| t,
-            |t| t,
-            100.0,
-            200.0,
-            None,
-        );
+        let curve =
+            ParametricCurve::new(Color::RED, |t| t, |t| t, 100.0, 200.0, None);
 
         assert!(curve.is_ok());
     }
@@ -159,14 +192,8 @@ mod tests {
         let start = Point::new(100.0, 100.0);
         let end = Point::new(200.0, 200.0);
 
-        let curve = ParametricCurve::new(
-            Color::RED,
-            |t| t,
-            |t| t,
-            100.0,
-            200.0,
-            None,
-        );
+        let curve =
+            ParametricCurve::new(Color::RED, |t| t, |t| t, 100.0, 200.0, None);
 
         let curve = curve.unwrap();
         let first_segment = curve.segments.first().unwrap();
