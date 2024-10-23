@@ -16,7 +16,7 @@ where
 }
 
 #[non_exhaustive]
-#[derive(Debug, Error, Clone, Copy)]
+#[derive(Debug, Error, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[error("Wrong interval.")]
 pub struct WrongInterval;
 
@@ -62,7 +62,7 @@ impl ParametricCurve<OneColorLine> {
 }
 
 #[non_exhaustive]
-#[derive(Debug, Error, Clone)]
+#[derive(Debug, Error, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum CurveFromSegmentsError {
     #[error("At least 2 lines are required to create a curve.")]
     NotEnoughLines,

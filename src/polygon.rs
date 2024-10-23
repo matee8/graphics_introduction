@@ -90,7 +90,7 @@ where
 }
 
 #[non_exhaustive]
-#[derive(Debug, Error, Clone)]
+#[derive(Debug, Error, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum PolygonFromLinesError {
     #[error("At least 3 lines are required to create a polygon.")]
     NotEnoughLines,

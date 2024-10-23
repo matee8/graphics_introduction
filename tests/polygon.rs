@@ -1,8 +1,75 @@
 use graphics_introduction::{
     line::{LineSegment, OneColorLine},
-    polygon::Polygon,
+    polygon::{Polygon, PolygonFromLinesError},
     Color, Point,
 };
+
+use core::iter;
+
+#[test]
+fn polygon_from_one_line_is_error() {
+    let line =
+        OneColorLine::new((100, 100).into(), (200, 200).into(), Color::RED);
+
+    let polygon = Polygon::new_from_lines(&[line]);
+
+    assert!(polygon.is_err());
+    assert_eq!(
+        polygon.unwrap_err(),
+        PolygonFromLinesError::NotEnoughLines
+    );
+}
+
+#[test]
+fn polygon_from_not_touching_lines_is_err() {
+    let lines = [
+        OneColorLine::new((100, 100).into(), (100, 200).into(), Color::RED),
+        OneColorLine::new((200, 100).into(), (200, 200).into(), Color::RED),
+        OneColorLine::new((300, 100).into(), (300, 200).into(), Color::RED),
+    ];
+
+    let polygon = Polygon::new_from_lines(&lines);
+
+    assert!(polygon.is_err());
+    assert_eq!(polygon.unwrap_err(), PolygonFromLinesError::LinesDontTouch);
+}
+
+#[test]
+fn polygon_from_four_touching_lines_is_ok() {
+    let lines = [
+        OneColorLine::new((100, 100).into(), (100, 200).into(), Color::RED),
+        OneColorLine::new((100, 200).into(), (200, 200).into(), Color::RED),
+        OneColorLine::new((200, 200).into(), (200, 100).into(), Color::RED),
+        OneColorLine::new((200, 100).into(), (100, 100).into(), Color::RED),
+    ];
+
+    let polygon = Polygon::new_from_lines(&lines);
+
+    assert!(polygon.is_ok());
+}
+
+#[test]
+fn polygon_from_four_touching_lines_has_correct_points() {
+    let points = [
+        (100, 100).into(),
+        (100, 200).into(),
+        (200, 200).into(),
+        (200, 100).into(),
+    ];
+
+    let lines: Vec<OneColorLine> = points
+        .windows(2)
+        .map(|points| (points[0], points[1]))
+        .chain(iter::once((points[points.len() - 1], points[0])))
+        .map(|(start, end)| {
+            OneColorLine::new(start, end, Color::RED)
+        })
+        .collect();
+
+    let polygon = Polygon::new_from_lines(&lines).unwrap();
+
+    assert_eq!(polygon.points(), points);
+}
 
 fn create_polygon() -> Polygon<OneColorLine> {
     Polygon::new(
