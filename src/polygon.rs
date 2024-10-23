@@ -3,7 +3,7 @@ use core::iter;
 use thiserror::Error;
 
 use crate::{
-    line::{LineSegment, OneColorLine},
+    segment::{LineSegment, OneColorSegment},
     Color, Point, Renderable, Renderer,
 };
 
@@ -16,11 +16,11 @@ where
 }
 
 #[non_exhaustive]
-#[derive(Debug, Error, Clone, Copy)]
+#[derive(Debug, Error, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[error("At least two points are required to create a polygon.")]
 pub struct NotEnoughPointsError;
 
-impl Polygon<OneColorLine> {
+impl Polygon<OneColorSegment> {
     #[inline]
     pub fn new(
         points: &[Point],
@@ -34,11 +34,11 @@ impl Polygon<OneColorLine> {
             clippy::indexing_slicing,
             reason = "Points has to have at least a size of 3 at this point."
         )]
-        let edges: Vec<OneColorLine> = points
+        let edges: Vec<OneColorSegment> = points
             .windows(2)
             .map(|points| (&points[0], &points[1]))
             .chain(iter::once((&points[points.len() - 1], &points[0])))
-            .map(|points| OneColorLine::new(*points.0, *points.1, color))
+            .map(|points| OneColorSegment::new(*points.0, *points.1, color))
             .collect();
 
         Ok(Self { edges })
@@ -57,7 +57,7 @@ where
 
     #[must_use]
     #[inline]
-    pub fn points(&self) -> Vec<Point> {
+    pub fn vertices(&self) -> Vec<Point> {
         self.edges().iter().map(LineSegment::first_point).collect()
     }
 
@@ -68,9 +68,9 @@ where
         reason = "Polygon::points() has to have at least a size of 3 at this point."
     )]
     pub fn contains(&self, point: Point) -> bool {
-        let points = self.points();
+        let points = self.vertices();
 
-        self.points()
+        self.vertices()
             .windows(2)
             .map(|edge| (edge[0], edge[1]))
             .chain(iter::once((points[points.len() - 1], points[0])))
@@ -91,11 +91,11 @@ where
 
 #[non_exhaustive]
 #[derive(Debug, Error, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum PolygonFromLinesError {
-    #[error("At least 3 lines are required to create a polygon.")]
-    NotEnoughLines,
-    #[error("The lines are required to touch to create a polygon.")]
-    LinesDontTouch,
+pub enum PolygonFromSegmentsError {
+    #[error("At least 3 segments are required to create a polygon.")]
+    NotEnough,
+    #[error("The segments are required to touch to create a polygon.")]
+    NotTouching,
 }
 
 impl<T> Polygon<T>
@@ -103,26 +103,28 @@ where
     T: LineSegment + Clone,
 {
     #[inline]
-    pub fn new_from_lines(lines: &[T]) -> Result<Self, PolygonFromLinesError> {
-        if lines.len() < 3 {
-            return Err(PolygonFromLinesError::NotEnoughLines);
+    pub fn new_from_segments(
+        segments: &[T],
+    ) -> Result<Self, PolygonFromSegmentsError> {
+        if segments.len() < 3 {
+            return Err(PolygonFromSegmentsError::NotEnough);
         }
 
         #[expect(
             clippy::indexing_slicing,
-            reason = "Lines has to have at least a size of 2 at this point."
+            reason = "Segments has to have at least a size of 2 at this point."
         )]
-        if !lines
+        if !segments
             .windows(2)
-            .map(|lines| (&lines[0], &lines[1]))
-            .chain(iter::once((&lines[lines.len() - 1], &lines[0])))
-            .all(|lines| lines.0.last_point() == lines.1.first_point())
+            .map(|segments| (&segments[0], &segments[1]))
+            .chain(iter::once((&segments[segments.len() - 1], &segments[0])))
+            .all(|segments| segments.0.last_point() == segments.1.first_point())
         {
-            return Err(PolygonFromLinesError::LinesDontTouch);
+            return Err(PolygonFromSegmentsError::NotTouching);
         }
 
         Ok(Self {
-            edges: Vec::from(lines),
+            edges: Vec::from(segments),
         })
     }
 }
@@ -148,10 +150,10 @@ where
 mod tests {
     use std::iter;
 
-    use crate::{line::OneColorLine, polygon::Polygon, Color};
+    use crate::{polygon::Polygon, segment::OneColorSegment, Color};
 
     #[test]
-    fn new_polygon_has_correct_points() {
+    fn new_polygon_has_correct_vertices() {
         let points = [
             (100, 100).into(),
             (100, 200).into(),
@@ -160,7 +162,7 @@ mod tests {
         ];
         let polygon = Polygon::new(&points, Color::RED).unwrap();
 
-        assert_eq!(polygon.points(), points);
+        assert_eq!(polygon.vertices(), points);
     }
 
     #[test]
@@ -174,15 +176,15 @@ mod tests {
         let color = Color::RED;
         let polygon = Polygon::new(&points, color).unwrap();
 
-        let lines: Vec<OneColorLine> = points
+        let segments: Vec<OneColorSegment> = points
             .windows(2)
             .map(|points| (points[0], points[1]))
             .chain(iter::once((points[points.len() - 1], points[0])))
-            .map(|(start, end)| OneColorLine::new(start, end, color))
+            .map(|(start, end)| OneColorSegment::new(start, end, color))
             .collect();
 
         for (i, edge) in polygon.edges().iter().enumerate() {
-            assert_eq!(*edge, lines[i]);
+            assert_eq!(*edge, segments[i]);
         }
     }
 

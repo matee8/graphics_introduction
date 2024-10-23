@@ -3,7 +3,7 @@ use core::iter;
 use thiserror::Error;
 
 use crate::{
-    line::{LineSegment, OneColorLine},
+    segment::{LineSegment, OneColorSegment},
     Color, Point, Renderable, Renderer, SMALL_ERROR_MARGIN,
 };
 
@@ -21,10 +21,10 @@ pub struct WrongInterval;
 #[non_exhaustive]
 #[derive(Debug, Error, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum CurveFromSegmentsError {
-    #[error("At least 2 lines are required to create a curve.")]
-    NotEnoughLines,
-    #[error("The lines are required to touch to create a curve.")]
-    LinesDontTouch,
+    #[error("At least 2 segments are required to create a curve.")]
+    NotEnough,
+    #[error("The segments are required to touch to create a curve.")]
+    NotTouching,
 }
 
 impl OneColorCurve {
@@ -60,43 +60,10 @@ impl OneColorCurve {
         while (t - end).abs() > SMALL_ERROR_MARGIN {
             t += h;
             let last_point = Point::new(x_fn(t), y_fn(t));
-            let segment = OneColorLine::new(first_point, last_point, color);
+            let segment = OneColorSegment::new(first_point, last_point, color);
             points.extend_from_slice(segment.points());
             first_point = last_point;
         }
-
-        Ok(Self { points, color })
-    }
-
-    #[inline]
-    pub fn new_from_lines<T>(
-        lines: &[T],
-        color: Color,
-    ) -> Result<Self, CurveFromSegmentsError>
-    where
-        T: LineSegment + Clone,
-    {
-        if lines.len() < 2 {
-            return Err(CurveFromSegmentsError::NotEnoughLines);
-        }
-
-        #[expect(
-            clippy::indexing_slicing,
-            reason = "Lines has to have at least a size of 2 at this point."
-        )]
-        if !lines
-            .windows(2)
-            .map(|lines| (&lines[0], &lines[1]))
-            .chain(iter::once((&lines[lines.len() - 1], &lines[0])))
-            .all(|lines| lines.0.last_point() == lines.1.first_point())
-        {
-            return Err(CurveFromSegmentsError::LinesDontTouch);
-        }
-
-        let points = lines
-            .iter()
-            .flat_map(|line| line.points().iter().copied())
-            .collect();
 
         Ok(Self { points, color })
     }
@@ -123,6 +90,39 @@ impl OneColorCurve {
         }
 
         Self { points, color }
+    }
+
+    #[inline]
+    pub fn new_from_segments<T>(
+        segments: &[T],
+        color: Color,
+    ) -> Result<Self, CurveFromSegmentsError>
+    where
+        T: LineSegment + Clone,
+    {
+        if segments.len() < 2 {
+            return Err(CurveFromSegmentsError::NotEnough);
+        }
+
+        #[expect(
+            clippy::indexing_slicing,
+            reason = "Segments has to have at least a size of 2 at this point."
+        )]
+        if !segments
+            .windows(2)
+            .map(|segments| (&segments[0], &segments[1]))
+            .chain(iter::once((&segments[segments.len() - 1], &segments[0])))
+            .all(|segments| segments.0.last_point() == segments.1.first_point())
+        {
+            return Err(CurveFromSegmentsError::NotTouching);
+        }
+
+        let points = segments
+            .iter()
+            .flat_map(|segments| segments.points().iter().copied())
+            .collect();
+
+        Ok(Self { points, color })
     }
 }
 

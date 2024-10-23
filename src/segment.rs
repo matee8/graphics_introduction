@@ -7,13 +7,13 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-pub struct LineGeneralForm {
+pub struct Line {
     a: f64,
     b: f64,
     c: f64,
 }
 
-impl LineGeneralForm {
+impl Line {
     #[must_use]
     #[inline]
     pub const fn new(a: f64, b: f64, c: f64) -> Self {
@@ -42,7 +42,7 @@ impl LineGeneralForm {
     }
 }
 
-impl From<(Point, Point)> for LineGeneralForm {
+impl From<(Point, Point)> for Line {
     #[inline]
     fn from(value: (Point, Point)) -> Self {
         Self::new_from_points(value.0, value.1)
@@ -56,32 +56,32 @@ pub trait LineSegment {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct OneColorLine {
+pub struct OneColorSegment {
     color: Color,
     points: Vec<Point>,
 }
 
 #[non_exhaustive]
-#[derive(Debug, Error, Copy, Clone)]
+#[derive(Debug, Error, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[error("Points are too far apart.")]
 pub struct InvalidPoints;
 
 #[non_exhaustive]
 #[derive(Debug, Error, Clone, Copy)]
-pub enum CutLineInsidePolygonError {
-    #[error("Line is fully outside polygon.")]
+pub enum CutSegmentInsidePolygonError {
+    #[error("Segment is fully outside polygon.")]
     Outside,
     #[error(
-        "Not enough intersections between the line and the polygon's edges."
+        "Not enough intersections between the segment and the polygon's edges."
     )]
     NotEnoughIntersections,
-    #[error("Intersection with polygon isn't in the original line.")]
+    #[error("Intersection with polygon isn't in the original segment.")]
     InvalidIntersection,
     #[error("One of the signums is NaN.")]
-    InvalidLines,
+    InvalidSegments,
 }
 
-impl OneColorLine {
+impl OneColorSegment {
     #[inline]
     pub fn new_45_deg(
         start: Point,
@@ -174,9 +174,9 @@ impl OneColorLine {
         end: Point,
         color: Color,
         polygon: &Polygon<T>,
-    ) -> Result<Self, CutLineInsidePolygonError>
+    ) -> Result<Self, CutSegmentInsidePolygonError>
     where
-        T: LineSegment + Into<LineGeneralForm>,
+        T: LineSegment + Into<Line>,
     {
         let (start, end) =
             Self::get_start_end_inside_polygon(start, end, polygon)?;
@@ -194,9 +194,9 @@ impl OneColorLine {
     pub fn cut_inside_polygon<T>(
         &mut self,
         polygon: &Polygon<T>,
-    ) -> Result<(), CutLineInsidePolygonError>
+    ) -> Result<(), CutSegmentInsidePolygonError>
     where
-        T: LineSegment + Into<LineGeneralForm>,
+        T: LineSegment + Into<Line>,
     {
         let (start, end) = Self::get_start_end_inside_polygon(
             self.first_point(),
@@ -208,14 +208,14 @@ impl OneColorLine {
             .points
             .iter()
             .position(|point| *point == start || *point == end)
-            .ok_or(CutLineInsidePolygonError::InvalidIntersection)?;
+            .ok_or(CutSegmentInsidePolygonError::InvalidIntersection)?;
         self.points.drain(..index);
 
         let index = self
             .points
             .iter()
             .rposition(|point| *point == end || *point == start)
-            .ok_or(CutLineInsidePolygonError::InvalidIntersection)?;
+            .ok_or(CutSegmentInsidePolygonError::InvalidIntersection)?;
         self.points.drain(index + 1..);
 
         Ok(())
@@ -225,9 +225,9 @@ impl OneColorLine {
         start: Point,
         end: Point,
         polygon: &Polygon<T>,
-    ) -> Result<(Point, Point), CutLineInsidePolygonError>
+    ) -> Result<(Point, Point), CutSegmentInsidePolygonError>
     where
-        T: LineSegment + Into<LineGeneralForm>,
+        T: LineSegment + Into<Line>,
     {
         let polygon_contains_start = polygon.contains(start);
         let mut polygon_contains_end = None;
@@ -239,15 +239,15 @@ impl OneColorLine {
             }
         }
 
-        let general_form = LineGeneralForm::new_from_points(start, end);
+        let line = Line::new_from_points(start, end);
 
         let signums: Vec<i8> = polygon
-            .points()
+            .vertices()
             .iter()
             .map(|point| {
                 let signum =
-                    (general_form.a.mul_add(point.x, general_form.b * point.y)
-                        + general_form.c)
+                    (line.a.mul_add(point.x, line.b * point.y)
+                        + line.c)
                         .signum();
 
                 #[expect(
@@ -256,7 +256,7 @@ impl OneColorLine {
                     reason = "NaN case is handled as an error, otherwise f64::signum either returns -1, 0 or 1."
                 )]
                 if signum.is_nan() {
-                    Err(CutLineInsidePolygonError::InvalidLines)
+                    Err(CutSegmentInsidePolygonError::InvalidSegments)
                 } else {
                     Ok(signum as i8)
                 }
@@ -266,7 +266,7 @@ impl OneColorLine {
         if signums.first().is_some_and(|first| {
             signums.iter().skip(1).all(|elem| first == elem)
         }) {
-            return Err(CutLineInsidePolygonError::Outside);
+            return Err(CutSegmentInsidePolygonError::Outside);
         }
 
         #[expect(
@@ -280,12 +280,12 @@ impl OneColorLine {
             .zip(polygon.edges())
             .filter(|&(signum, _)| (signum.0 != signum.1))
             .map(|(_, edge)| {
-                let edge_general_form = LineGeneralForm::new_from_points(
+                let edge_line = Line::new_from_points(
                     edge.first_point(),
                     edge.last_point(),
                 );
 
-                general_form.intersection(&edge_general_form)
+                line.intersection(&edge_line)
             })
             .collect();
 
@@ -293,7 +293,9 @@ impl OneColorLine {
             start
         } else {
             let Some(intersection) = intersections.first() else {
-                return Err(CutLineInsidePolygonError::NotEnoughIntersections);
+                return Err(
+                    CutSegmentInsidePolygonError::NotEnoughIntersections,
+                );
             };
             *intersection
         };
@@ -305,7 +307,9 @@ impl OneColorLine {
             end
         } else {
             let Some(intersection) = intersections.get(1) else {
-                return Err(CutLineInsidePolygonError::NotEnoughIntersections);
+                return Err(
+                    CutSegmentInsidePolygonError::NotEnoughIntersections,
+                );
             };
             *intersection
         };
@@ -314,9 +318,9 @@ impl OneColorLine {
     }
 }
 
-impl From<OneColorLine> for LineGeneralForm {
+impl From<OneColorSegment> for Line {
     #[inline]
-    fn from(value: OneColorLine) -> Self {
+    fn from(value: OneColorSegment) -> Self {
         Self::new(
             value.last_point().y - value.first_point().y,
             value.first_point().x - value.last_point().x,
@@ -329,22 +333,22 @@ impl From<OneColorLine> for LineGeneralForm {
 }
 
 #[non_exhaustive]
-#[derive(Debug, Error)]
-pub enum LineDrawError<T>
+#[derive(Debug, Error, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum SegmentDrawError<T>
 where
     T: Renderer,
 {
-    #[error("Couldn't draw the line.")]
+    #[error("Couldn't draw the segment.")]
     Draw(T::DrawError),
-    #[error("Line was empty.")]
+    #[error("Segment was empty.")]
     Empty,
 }
 
-impl<T> Renderable<T> for OneColorLine
+impl<T> Renderable<T> for OneColorSegment
 where
     T: Renderer,
 {
-    type Error = LineDrawError<T>;
+    type Error = SegmentDrawError<T>;
 
     #[inline]
     fn render(&self, renderer: &mut T) -> Result<(), Self::Error>
@@ -354,13 +358,13 @@ where
         let old_color = renderer.current_color();
 
         if self.points.is_empty() {
-            return Err(LineDrawError::Empty);
+            return Err(SegmentDrawError::Empty);
         }
 
         renderer.set_color(self.color);
         renderer
             .draw_points(&self.points)
-            .map_err(LineDrawError::Draw)?;
+            .map_err(SegmentDrawError::Draw)?;
 
         renderer.set_color(old_color);
 
@@ -368,7 +372,7 @@ where
     }
 }
 
-impl LineSegment for OneColorLine {
+impl LineSegment for OneColorSegment {
     #[inline]
     fn points(&self) -> &[Point] {
         &self.points
@@ -378,7 +382,7 @@ impl LineSegment for OneColorLine {
     fn first_point(&self) -> Point {
         #[expect(
             clippy::indexing_slicing,
-            reason = "OneColorLine's points cannot be empty at any point in time."
+            reason = "OneColorSegment's points cannot be empty at any point in time."
         )]
         self.points[0]
     }
@@ -387,7 +391,7 @@ impl LineSegment for OneColorLine {
     fn last_point(&self) -> Point {
         #[expect(
             clippy::indexing_slicing,
-            reason = "OneColorLine's points cannot be empty at any point in time."
+            reason = "OneColorSegment's points cannot be empty at any point in time."
         )]
         self.points[self.points.len() - 1]
     }
@@ -396,30 +400,30 @@ impl LineSegment for OneColorLine {
 #[cfg(test)]
 mod tests {
     use crate::{
-        line::{LineGeneralForm, LineSegment, OneColorLine},
+        segment::{Line, LineSegment, OneColorSegment},
         Color,
     };
 
     #[test]
-    fn new_line_has_correct_start_and_end_points() {
+    fn new_segment_has_correct_start_and_end_points() {
         let start = (100, 100).into();
         let end = (100, 200).into();
 
-        let line = OneColorLine::new(start, end, Color::RED);
+        let segment = OneColorSegment::new(start, end, Color::RED);
 
-        assert_eq!(line.first_point(), start);
-        assert_eq!(line.last_point(), end);
+        assert_eq!(segment.first_point(), start);
+        assert_eq!(segment.last_point(), end);
     }
 
     #[test]
-    fn new_line_has_correct_general_form() {
+    fn new_segment_has_correct_general_form() {
         let start = (100, 100).into();
         let end = (100, 200).into();
 
-        let general_form = LineGeneralForm::new_from_points(start, end);
-        let line: LineGeneralForm =
-            OneColorLine::new(start, end, Color::RED).into();
+        let line = Line::new_from_points(start, end);
+        let segment_line: Line =
+            OneColorSegment::new(start, end, Color::RED).into();
 
-        assert_eq!(line, general_form);
+        assert_eq!(segment_line, line);
     }
 }

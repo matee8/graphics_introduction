@@ -1,9 +1,7 @@
 use core::f64;
 use std::process;
 
-use graphics_introduction::{
-    curve::OneColorCurve, Color, Renderable,
-};
+use graphics_introduction::{curve::OneColorCurve, Color, Renderable};
 use sdl2::event::Event;
 
 const WIDTH: u32 = 640;

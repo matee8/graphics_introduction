@@ -3,11 +3,11 @@ use core::ops::{
 };
 
 pub mod curve;
-pub mod line;
 pub mod pixel;
 pub mod polygon;
 #[cfg(feature = "sdl2")]
 pub mod sdl2;
+pub mod segment;
 
 const SMALL_ERROR_MARGIN: f64 = 0.001;
 const ERROR_MARGIN: f64 = 0.7;
