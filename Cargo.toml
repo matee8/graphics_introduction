@@ -1,5 +1,5 @@
 [package]
-name = "graphics-introduction"
+name = "graphics_introduction"
 version = "0.1.0"
 edition = "2021"
 
