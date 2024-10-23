@@ -7,7 +7,7 @@ use graphics_introduction::{
 };
 
 #[test]
-fn polygon_from_one_segment_is_error() {
+fn polygon_from_one_segment_is_err() {
     let segment =
         OneColorSegment::new((100, 100).into(), (200, 200).into(), Color::RED);
 

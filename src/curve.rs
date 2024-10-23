@@ -1,5 +1,3 @@
-use core::iter;
-
 use thiserror::Error;
 
 use crate::{
@@ -111,7 +109,6 @@ impl OneColorCurve {
         if !segments
             .windows(2)
             .map(|segments| (&segments[0], &segments[1]))
-            .chain(iter::once((&segments[segments.len() - 1], &segments[0])))
             .all(|segments| segments.0.last_point() == segments.1.first_point())
         {
             return Err(CurveFromSegmentsError::NotTouching);
@@ -123,6 +120,12 @@ impl OneColorCurve {
             .collect();
 
         Ok(Self { points, color })
+    }
+
+    #[must_use]
+    #[inline]
+    pub fn points(&self) -> &[Point] {
+        &self.points
     }
 }
 
