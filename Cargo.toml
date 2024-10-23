@@ -14,10 +14,6 @@ keywords = ["graphics", "rendering"]
 path = "src/lib.rs"
 
 [[example]]
-name = "line_inside_polygon"
-required-features = ["sdl2"]
-
-[[example]]
 name = "circle"
 required-features = ["sdl2"]
 

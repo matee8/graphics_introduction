@@ -94,12 +94,7 @@ pub struct OneColorImplicitCurve {
 
 impl OneColorImplicitCurve {
     #[inline]
-    pub fn new<F>(
-        curve: F,
-        color: Color,
-        width: i32,
-        height: i32,
-    ) -> Self
+    pub fn new<F>(curve: F, color: Color, width: i32, height: i32) -> Self
     where
         F: Fn(f64, f64) -> f64,
     {
@@ -107,13 +102,39 @@ impl OneColorImplicitCurve {
 
         for i in 0..width {
             for j in 0..height {
-                if curve(f64::from(i), f64::from(j)).abs() < SMALL_ERROR_MARGIN {
+                if curve(f64::from(i), f64::from(j)).abs() < SMALL_ERROR_MARGIN
+                {
                     points.push((i, j).into());
                 }
             }
         }
 
         Self { color, points }
+    }
+}
+
+impl<T> Renderable<T> for OneColorImplicitCurve
+where
+    T: Renderer,
+{
+    type Error = T::DrawError;
+
+    #[inline]
+    fn render(&self, renderer: &mut T) -> Result<(), Self::Error>
+    where
+        T: Renderer,
+    {
+        let old_color = renderer.current_color();
+
+        renderer.set_color(self.color);
+        for point in &self.points {
+            println!("{:?}", point);
+            renderer.draw_point(*point)?;
+        }
+
+        renderer.set_color(old_color);
+
+        Ok(())
     }
 }
 
@@ -201,12 +222,8 @@ mod tests {
 
     #[test]
     fn new_implicit_curve_has_correct_endpoints() {
-        let curve = OneColorImplicitCurve::new(
-            |x, _| x,
-            Color::RED,
-            1000,
-            1000,
-        );
+        let curve =
+            OneColorImplicitCurve::new(|x, _| x, Color::RED, 1000, 1000);
 
         assert_eq!(curve.points.first(), Some(&Point::new(0.0, 0.0)));
         assert_eq!(curve.points.iter().last(), Some(&Point::new(0.0, 999.0)));
