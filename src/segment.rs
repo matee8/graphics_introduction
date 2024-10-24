@@ -7,6 +7,8 @@ use crate::{
     ERROR_MARGIN,
 };
 
+pub trait LineSegment: GeometricPrimitve {}
+
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Line {
     a: f64,
@@ -42,15 +44,6 @@ impl Line {
         Point::new(x, y)
     }
 }
-
-impl From<(Point, Point)> for Line {
-    #[inline]
-    fn from(value: (Point, Point)) -> Self {
-        Self::new_from_points(value.0, value.1)
-    }
-}
-
-pub trait LineSegment: GeometricPrimitve {}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct OneColorSegment {
