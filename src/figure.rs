@@ -5,7 +5,7 @@ use thiserror::Error;
 
 use crate::{
     polygon::NotEnoughPointsError, segment::OneColorSegment, Color,
-    GeometricPrimitve, Point, Renderable, Renderer,
+    GeometricPrimitve, Point, Renderable, Renderer, Shape,
 };
 
 #[derive(Debug, Clone)]
@@ -91,20 +91,16 @@ where
             edges: Cow::Borrowed(curves),
         })
     }
+}
 
-    #[must_use]
+impl<T> Shape<T> for Figure<'_, T>
+where
+    T: GeometricPrimitve + Clone
+{
     #[inline]
-    pub fn edges(&self) -> &[T] {
+    #[must_use]
+    fn edges(&self) -> &[T] {
         &self.edges
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn vertices(&self) -> Vec<Point> {
-        self.edges()
-            .iter()
-            .map(GeometricPrimitve::first_point)
-            .collect()
     }
 }
 
@@ -129,7 +125,7 @@ where
 mod tests {
     use core::iter;
 
-    use crate::{figure::Figure, segment::OneColorSegment, Color};
+    use crate::{figure::Figure, segment::OneColorSegment, Color, Shape};
 
     #[test]
     fn new_figure_has_correct_vertices() {

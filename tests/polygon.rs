@@ -3,7 +3,7 @@ use core::iter;
 use graphics_introduction::{
     polygon::{Polygon, PolygonFromSegmentsError},
     segment::OneColorSegment,
-    Color, GeometricPrimitve, Point,
+    Color, GeometricPrimitve, Point, Shape,
 };
 
 #[test]

@@ -1,5 +1,6 @@
-use core::ops::{
-    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign,
+use core::{
+    iter,
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
 };
 
 pub mod curve;
@@ -15,7 +16,9 @@ const ERROR_MARGIN: f64 = 0.7;
 
 pub trait Renderer {
     type DrawError;
+
     fn draw_point(&mut self, point: Point) -> Result<(), Self::DrawError>;
+
     #[inline]
     fn draw_points(&mut self, points: &[Point]) -> Result<(), Self::DrawError> {
         for point in points {
@@ -23,7 +26,9 @@ pub trait Renderer {
         }
         Ok(())
     }
+
     fn set_color(&mut self, color: Color);
+
     fn current_color(&self) -> Color;
 }
 
@@ -32,12 +37,14 @@ where
     T: Renderer,
 {
     type Error;
+
     fn render(&self, renderer: &mut T) -> Result<(), Self::Error>;
 }
 
 pub trait GeometricPrimitve {
     fn points(&self) -> &[Point];
 
+    #[must_use]
     #[inline]
     fn first_point(&self) -> Point {
         #[expect(
@@ -47,6 +54,7 @@ pub trait GeometricPrimitve {
         self.points()[0]
     }
 
+    #[must_use]
     #[inline]
     fn last_point(&self) -> Point {
         #[expect(
@@ -56,9 +64,54 @@ pub trait GeometricPrimitve {
         self.points()[self.points().len() - 1]
     }
 
+    #[must_use]
     #[inline]
     fn length(&self) -> usize {
         self.points().len()
+    }
+}
+
+pub trait Shape<T>
+where
+    T: GeometricPrimitve,
+{
+    #[must_use]
+    fn edges(&self) -> &[T];
+
+    #[must_use]
+    #[inline]
+    fn vertices(&self) -> Vec<Point> {
+        self.edges()
+            .iter()
+            .map(GeometricPrimitve::first_point)
+            .collect()
+    }
+
+    #[must_use]
+    #[inline]
+    #[expect(
+        clippy::indexing_slicing,
+        reason = "Polygon::points() has to have at least a size of 3 at this point."
+    )]
+    fn contains(&self, point: Point) -> bool {
+        let points = self.vertices();
+
+        self.vertices()
+            .windows(2)
+            .map(|edge| (edge[0], edge[1]))
+            .chain(iter::once((points[points.len() - 1], points[0])))
+            .filter(|&(first_point, last_point)| {
+                (first_point.y > point.y) != (last_point.y > point.y)
+            })
+            .map(|(first_point, last_point)| {
+                let slope = (last_point.x - first_point.x)
+                    / (last_point.y - first_point.y);
+                (point.y - first_point.y).mul_add(slope, first_point.x)
+            })
+            .filter(|&intersect_x| point.x < intersect_x)
+            .count()
+            & 1
+            == 1
     }
 }
 

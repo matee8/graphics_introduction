@@ -4,7 +4,7 @@ use thiserror::Error;
 
 use crate::{
     polygon::Polygon, Color, GeometricPrimitve, Point, Renderable, Renderer,
-    ERROR_MARGIN,
+    Shape, ERROR_MARGIN,
 };
 
 pub trait LineSegment: GeometricPrimitve {}
