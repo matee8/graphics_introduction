@@ -3,7 +3,10 @@ use std::borrow::Cow;
 
 use thiserror::Error;
 
-use crate::{GeometricPrimitve, Renderable, Renderer};
+use crate::{
+    polygon::NotEnoughPointsError, segment::OneColorSegment, Color,
+    GeometricPrimitve, Point, Renderable, Renderer,
+};
 
 #[derive(Debug, Clone)]
 pub struct Figure<'edges, T>
@@ -11,6 +14,33 @@ where
     T: GeometricPrimitve + Clone,
 {
     edges: Cow<'edges, [T]>,
+}
+
+impl Figure<'_, OneColorSegment> {
+    #[inline]
+    pub fn new_from_points(
+        points: &[Point],
+        color: Color,
+    ) -> Result<Self, NotEnoughPointsError> {
+        if points.len() < 2 {
+            return Err(NotEnoughPointsError);
+        }
+
+        #[expect(
+            clippy::indexing_slicing,
+            reason = "Points has to have at least a size of 3 at this point."
+        )]
+        let edges: Vec<OneColorSegment> = points
+            .windows(2)
+            .map(|points| (&points[0], &points[1]))
+            .chain(iter::once((&points[points.len() - 1], &points[0])))
+            .map(|points| OneColorSegment::new(*points.0, *points.1, color))
+            .collect();
+
+        Ok(Self {
+            edges: Cow::Owned(edges),
+        })
+    }
 }
 
 #[non_exhaustive]

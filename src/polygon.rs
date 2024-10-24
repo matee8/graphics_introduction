@@ -18,7 +18,7 @@ where
 
 #[non_exhaustive]
 #[derive(Debug, Error, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[error("At least two points are required to create a polygon.")]
+#[error("At least three points are required to create a polygon.")]
 pub struct NotEnoughPointsError;
 
 impl Polygon<'_, OneColorSegment> {
@@ -42,7 +42,9 @@ impl Polygon<'_, OneColorSegment> {
             .map(|points| OneColorSegment::new(*points.0, *points.1, color))
             .collect();
 
-        Ok(Self { edges: Cow::Owned(edges) })
+        Ok(Self {
+            edges: Cow::Owned(edges),
+        })
     }
 }
 
