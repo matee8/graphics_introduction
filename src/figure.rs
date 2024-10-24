@@ -91,6 +91,21 @@ where
             edges: Cow::Borrowed(curves),
         })
     }
+
+    #[must_use]
+    #[inline]
+    pub fn edges(&self) -> &[T] {
+        &self.edges
+    }
+
+    #[must_use]
+    #[inline]
+    pub fn vertices(&self) -> Vec<Point> {
+        self.edges()
+            .iter()
+            .map(GeometricPrimitve::first_point)
+            .collect()
+    }
 }
 
 impl<T, R> Renderable<R> for Figure<'_, T>
