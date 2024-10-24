@@ -3,7 +3,7 @@ use std::borrow::Cow;
 
 use thiserror::Error;
 
-use crate::GeometricPrimitve;
+use crate::{GeometricPrimitve, Renderable, Renderer};
 
 #[derive(Debug, Clone)]
 pub struct Figure<'edges, T>
@@ -60,5 +60,22 @@ where
         Ok(Self {
             edges: Cow::Borrowed(curves),
         })
+    }
+}
+
+impl<T, R> Renderable<R> for Figure<'_, T>
+where
+    T: GeometricPrimitve + Clone + Renderable<R>,
+    R: Renderer,
+{
+    type Error = T::Error;
+
+    #[inline]
+    fn render(&self, renderer: &mut R) -> Result<(), Self::Error> {
+        for edge in &*self.edges {
+            edge.render(renderer)?;
+        }
+
+        Ok(())
     }
 }
