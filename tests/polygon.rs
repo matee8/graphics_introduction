@@ -2,7 +2,7 @@ use core::iter;
 
 use graphics_introduction::{
     polygon::{Polygon, PolygonFromSegmentsError},
-    segment::{LineSegment, OneColorSegment},
+    segment::{GeometricPrimitve, OneColorSegment},
     Color, Point,
 };
 

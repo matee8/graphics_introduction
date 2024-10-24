@@ -49,11 +49,13 @@ impl From<(Point, Point)> for Line {
     }
 }
 
-pub trait LineSegment {
+pub trait GeometricPrimitve {
     fn points(&self) -> &[Point];
     fn first_point(&self) -> Point;
     fn last_point(&self) -> Point;
 }
+
+pub trait LineSegment: GeometricPrimitve {}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct OneColorSegment {
@@ -372,7 +374,7 @@ where
     }
 }
 
-impl LineSegment for OneColorSegment {
+impl GeometricPrimitve for OneColorSegment {
     #[inline]
     fn points(&self) -> &[Point] {
         &self.points
@@ -397,10 +399,12 @@ impl LineSegment for OneColorSegment {
     }
 }
 
+impl LineSegment for OneColorSegment {}
+
 #[cfg(test)]
 mod tests {
     use crate::{
-        segment::{Line, LineSegment, OneColorSegment},
+        segment::{GeometricPrimitve, Line, OneColorSegment},
         Color,
     };
 

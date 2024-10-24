@@ -3,7 +3,7 @@ use core::iter;
 use thiserror::Error;
 
 use crate::{
-    segment::{LineSegment, OneColorSegment},
+    segment::{GeometricPrimitve, LineSegment, OneColorSegment},
     Color, Point, Renderable, Renderer,
 };
 
@@ -58,7 +58,10 @@ where
     #[must_use]
     #[inline]
     pub fn vertices(&self) -> Vec<Point> {
-        self.edges().iter().map(LineSegment::first_point).collect()
+        self.edges()
+            .iter()
+            .map(GeometricPrimitve::first_point)
+            .collect()
     }
 
     #[must_use]

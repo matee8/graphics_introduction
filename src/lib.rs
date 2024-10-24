@@ -3,6 +3,7 @@ use core::ops::{
 };
 
 pub mod curve;
+pub mod figure;
 pub mod pixel;
 pub mod polygon;
 #[cfg(feature = "sdl2")]

@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 use crate::{
-    segment::{LineSegment, OneColorSegment},
+    segment::{GeometricPrimitve, OneColorSegment},
     Color, Point, Renderable, Renderer, SMALL_ERROR_MARGIN,
 };
 
@@ -96,7 +96,7 @@ impl OneColorCurve {
         color: Color,
     ) -> Result<Self, CurveFromSegmentsError>
     where
-        T: LineSegment + Clone,
+        T: GeometricPrimitve + Clone,
     {
         if segments.len() < 2 {
             return Err(CurveFromSegmentsError::NotEnough);
