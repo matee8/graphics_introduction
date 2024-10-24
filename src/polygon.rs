@@ -3,8 +3,8 @@ use core::iter;
 use thiserror::Error;
 
 use crate::{
-    segment::{GeometricPrimitve, LineSegment, OneColorSegment},
-    Color, Point, Renderable, Renderer,
+    segment::{LineSegment, OneColorSegment},
+    Color, GeometricPrimitve, Point, Renderable, Renderer,
 };
 
 #[derive(Debug)]

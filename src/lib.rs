@@ -35,6 +35,33 @@ where
     fn render(&self, renderer: &mut T) -> Result<(), Self::Error>;
 }
 
+pub trait GeometricPrimitve {
+    fn points(&self) -> &[Point];
+
+    #[inline]
+    fn first_point(&self) -> Point {
+        #[expect(
+            clippy::indexing_slicing,
+            reason = "A geometric primitive cannot be created without points."
+        )]
+        self.points()[0]
+    }
+
+    #[inline]
+    fn last_point(&self) -> Point {
+        #[expect(
+            clippy::indexing_slicing,
+            reason = "A geometric primitive cannot be created without points."
+        )]
+        self.points()[self.points().len() - 1]
+    }
+
+    #[inline]
+    fn length(&self) -> usize {
+        self.points().len()
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Point {
     x: f64,

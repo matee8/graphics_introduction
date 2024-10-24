@@ -2,8 +2,8 @@ use core::iter;
 
 use graphics_introduction::{
     polygon::{Polygon, PolygonFromSegmentsError},
-    segment::{GeometricPrimitve, OneColorSegment},
-    Color, Point,
+    segment::OneColorSegment,
+    Color, GeometricPrimitve, Point,
 };
 
 #[test]

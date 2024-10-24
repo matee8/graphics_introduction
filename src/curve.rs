@@ -1,8 +1,8 @@
 use thiserror::Error;
 
 use crate::{
-    segment::{GeometricPrimitve, OneColorSegment},
-    Color, Point, Renderable, Renderer, SMALL_ERROR_MARGIN,
+    segment::OneColorSegment, Color, GeometricPrimitve, Point, Renderable,
+    Renderer, SMALL_ERROR_MARGIN,
 };
 
 #[derive(Debug, Clone, PartialEq)]

@@ -3,7 +3,8 @@ use core::{iter, mem};
 use thiserror::Error;
 
 use crate::{
-    polygon::Polygon, Color, Point, Renderable, Renderer, ERROR_MARGIN,
+    polygon::Polygon, Color, GeometricPrimitve, Point, Renderable, Renderer,
+    ERROR_MARGIN,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
@@ -46,33 +47,6 @@ impl From<(Point, Point)> for Line {
     #[inline]
     fn from(value: (Point, Point)) -> Self {
         Self::new_from_points(value.0, value.1)
-    }
-}
-
-pub trait GeometricPrimitve {
-    fn points(&self) -> &[Point];
-
-    #[inline]
-    fn first_point(&self) -> Point {
-        #[expect(
-            clippy::indexing_slicing,
-            reason = "A geometric primitive cannot be created without points."
-        )]
-        self.points()[0]
-    }
-
-    #[inline]
-    fn last_point(&self) -> Point {
-        #[expect(
-            clippy::indexing_slicing,
-            reason = "A geometric primitive cannot be created without points."
-        )]
-        self.points()[self.points().len() - 1]
-    }
-
-    #[inline]
-    fn length(&self) -> usize {
-        self.points().len()
     }
 }
 
