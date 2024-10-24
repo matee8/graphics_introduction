@@ -10,7 +10,7 @@ pub struct Figure<'edges, T>
 where
     T: GeometricPrimitve + Clone,
 {
-    edges: Cow<'edges, Vec<T>>,
+    edges: Cow<'edges, [T]>,
 }
 
 #[non_exhaustive]
@@ -30,7 +30,7 @@ where
 {
     #[inline]
     pub fn new_from_primitives(
-        curves: &'edges Vec<T>,
+        curves: &'edges [T],
     ) -> Result<Self, FigureFromPrimitivesError> {
         #[expect(
             clippy::indexing_slicing,
