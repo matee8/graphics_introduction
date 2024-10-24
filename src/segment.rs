@@ -51,8 +51,29 @@ impl From<(Point, Point)> for Line {
 
 pub trait GeometricPrimitve {
     fn points(&self) -> &[Point];
-    fn first_point(&self) -> Point;
-    fn last_point(&self) -> Point;
+
+    #[inline]
+    fn first_point(&self) -> Point {
+        #[expect(
+            clippy::indexing_slicing,
+            reason = "A geometric primitive cannot be created without points."
+        )]
+        self.points()[0]
+    }
+
+    #[inline]
+    fn last_point(&self) -> Point {
+        #[expect(
+            clippy::indexing_slicing,
+            reason = "A geometric primitive cannot be created without points."
+        )]
+        self.points()[self.points().len() - 1]
+    }
+
+    #[inline]
+    fn length(&self) -> usize {
+        self.points().len()
+    }
 }
 
 pub trait LineSegment: GeometricPrimitve {}
@@ -378,24 +399,6 @@ impl GeometricPrimitve for OneColorSegment {
     #[inline]
     fn points(&self) -> &[Point] {
         &self.points
-    }
-
-    #[inline]
-    fn first_point(&self) -> Point {
-        #[expect(
-            clippy::indexing_slicing,
-            reason = "OneColorSegment's points cannot be empty at any point in time."
-        )]
-        self.points[0]
-    }
-
-    #[inline]
-    fn last_point(&self) -> Point {
-        #[expect(
-            clippy::indexing_slicing,
-            reason = "OneColorSegment's points cannot be empty at any point in time."
-        )]
-        self.points[self.points.len() - 1]
     }
 }
 
