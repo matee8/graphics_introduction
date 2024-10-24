@@ -11,7 +11,8 @@ fn polygon_from_one_segment_is_err() {
     let segment =
         OneColorSegment::new((100, 100).into(), (200, 200).into(), Color::RED);
 
-    let polygon = Polygon::new_from_segments(&[segment]);
+    let segments = &[segment];
+    let polygon = Polygon::new_from_segments(segments);
 
     assert!(polygon.is_err());
     assert_eq!(polygon.unwrap_err(), PolygonFromSegmentsError::NotEnough);
@@ -66,7 +67,7 @@ fn polygon_from_four_touching_segments_has_correct_points() {
     assert_eq!(polygon.vertices(), points);
 }
 
-fn create_polygon() -> Polygon<OneColorSegment> {
+fn create_polygon() -> Polygon<'static, OneColorSegment> {
     Polygon::new(
         &[
             ((100, 100).into()),

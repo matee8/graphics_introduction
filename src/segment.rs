@@ -163,10 +163,10 @@ impl OneColorSegment {
         start: Point,
         end: Point,
         color: Color,
-        polygon: &Polygon<T>,
+        polygon: &Polygon<'_, T>,
     ) -> Result<Self, CutSegmentInsidePolygonError>
     where
-        T: LineSegment + Into<Line>,
+        T: LineSegment + Into<Line> + Clone,
     {
         let (start, end) =
             Self::get_start_end_inside_polygon(start, end, polygon)?;
@@ -183,10 +183,10 @@ impl OneColorSegment {
     #[inline]
     pub fn cut_inside_polygon<T>(
         &mut self,
-        polygon: &Polygon<T>,
+        polygon: &Polygon<'_, T>,
     ) -> Result<(), CutSegmentInsidePolygonError>
     where
-        T: LineSegment + Into<Line>,
+        T: LineSegment + Into<Line> + Clone,
     {
         let (start, end) = Self::get_start_end_inside_polygon(
             self.first_point(),
@@ -214,10 +214,10 @@ impl OneColorSegment {
     fn get_start_end_inside_polygon<T>(
         start: Point,
         end: Point,
-        polygon: &Polygon<T>,
+        polygon: &Polygon<'_, T>,
     ) -> Result<(Point, Point), CutSegmentInsidePolygonError>
     where
-        T: LineSegment + Into<Line>,
+        T: LineSegment + Into<Line> + Clone,
     {
         let polygon_contains_start = polygon.contains(start);
         let mut polygon_contains_end = None;

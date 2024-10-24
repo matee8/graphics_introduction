@@ -1,4 +1,5 @@
 use core::iter;
+use std::borrow::Cow;
 
 use thiserror::Error;
 
@@ -8,11 +9,11 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub struct Polygon<T>
+pub struct Polygon<'edges, T>
 where
-    T: LineSegment,
+    T: LineSegment + Clone,
 {
-    edges: Vec<T>,
+    edges: Cow<'edges, [T]>,
 }
 
 #[non_exhaustive]
@@ -20,7 +21,7 @@ where
 #[error("At least two points are required to create a polygon.")]
 pub struct NotEnoughPointsError;
 
-impl Polygon<OneColorSegment> {
+impl Polygon<'_, OneColorSegment> {
     #[inline]
     pub fn new(
         points: &[Point],
@@ -41,13 +42,13 @@ impl Polygon<OneColorSegment> {
             .map(|points| OneColorSegment::new(*points.0, *points.1, color))
             .collect();
 
-        Ok(Self { edges })
+        Ok(Self { edges: Cow::Owned(edges) })
     }
 }
 
-impl<T> Polygon<T>
+impl<T> Polygon<'_, T>
 where
-    T: LineSegment,
+    T: LineSegment + Clone,
 {
     #[must_use]
     #[inline]
@@ -101,13 +102,13 @@ pub enum PolygonFromSegmentsError {
     NotTouching,
 }
 
-impl<T> Polygon<T>
+impl<'edges, T> Polygon<'edges, T>
 where
     T: LineSegment + Clone,
 {
     #[inline]
     pub fn new_from_segments(
-        segments: &[T],
+        segments: &'edges [T],
     ) -> Result<Self, PolygonFromSegmentsError> {
         if segments.len() < 3 {
             return Err(PolygonFromSegmentsError::NotEnough);
@@ -127,21 +128,21 @@ where
         }
 
         Ok(Self {
-            edges: Vec::from(segments),
+            edges: Cow::Borrowed(segments),
         })
     }
 }
 
-impl<T, R> Renderable<R> for Polygon<T>
+impl<T, R> Renderable<R> for Polygon<'_, T>
 where
-    T: LineSegment + Renderable<R>,
+    T: LineSegment + Renderable<R> + Clone,
     R: Renderer,
 {
     type Error = T::Error;
 
     #[inline]
     fn render(&self, renderer: &mut R) -> Result<(), Self::Error> {
-        for edge in &self.edges {
+        for edge in &*self.edges {
             edge.render(renderer)?;
         }
 
