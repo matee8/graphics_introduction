@@ -124,3 +124,46 @@ where
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use core::iter;
+
+    use crate::{figure::Figure, segment::OneColorSegment, Color};
+
+    #[test]
+    fn new_figure_has_correct_vertices() {
+        let points = [
+            (100, 100).into(),
+            (100, 200).into(),
+            (200, 200).into(),
+            (200, 100).into(),
+        ];
+        let polygon = Figure::new_from_points(&points, Color::RED).unwrap();
+
+        assert_eq!(polygon.vertices(), points);
+    }
+
+    #[test]
+    fn new_polygon_has_correct_edges() {
+        let points = [
+            (100, 100).into(),
+            (100, 200).into(),
+            (200, 200).into(),
+            (200, 100).into(),
+        ];
+        let color = Color::RED;
+        let polygon = Figure::new_from_points(&points, color).unwrap();
+
+        let segments: Vec<OneColorSegment> = points
+            .windows(2)
+            .map(|points| (points[0], points[1]))
+            .chain(iter::once((points[points.len() - 1], points[0])))
+            .map(|(start, end)| OneColorSegment::new(start, end, color))
+            .collect();
+
+        for (i, edge) in polygon.edges().iter().enumerate() {
+            assert_eq!(*edge, segments[i]);
+        }
+    }
+}
