@@ -7,7 +7,7 @@ use crate::{
     Color, GeometricPrimitve, Point, Renderable, Renderer,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Polygon<T>
 where
     T: LineSegment,
