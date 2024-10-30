@@ -95,7 +95,7 @@ where
 
 impl<T> Shape<T> for Figure<'_, T>
 where
-    T: GeometricPrimitve + Clone
+    T: GeometricPrimitve + Clone,
 {
     #[inline]
     #[must_use]

@@ -18,6 +18,10 @@ name = "circle"
 required-features = ["sdl2"]
 
 [[example]]
+name = "heart"
+required-features = ["sdl2"]
+
+[[example]]
 name = "epicycloid"
 required-features = ["sdl2"]
 
