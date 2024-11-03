@@ -10,6 +10,7 @@ pub mod polygon;
 #[cfg(feature = "sdl2")]
 pub mod sdl2;
 pub mod segment;
+pub mod vector;
 
 const SMALL_ERROR_MARGIN: f64 = 0.001;
 const ERROR_MARGIN: f64 = 0.7;
