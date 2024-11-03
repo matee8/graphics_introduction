@@ -1,8 +1,8 @@
 use thiserror::Error;
 
 use crate::{
-    segment::OneColorSegment, Color, GeometricPrimitve, Point, Renderable,
-    Renderer, SMALL_ERROR_MARGIN,
+    segment::OneColorSegment, vector::Vector2, Color, GeometricPrimitve, Point,
+    Renderable, Renderer, SMALL_ERROR_MARGIN,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -120,6 +120,57 @@ impl OneColorCurve {
             .collect();
 
         Ok(Self { points, color })
+    }
+
+    #[inline]
+    pub fn new_hermite_arc(
+        color: Color,
+        start: Vector2,
+        start_tangent: Vector2,
+        end: Vector2,
+        end_tangent: Vector2,
+        num_segments: Option<i32>,
+    ) -> Result<Self, WrongInterval> {
+        const fn basis_h0(t: f64) -> f64 {
+            2.0 * t * t * t - 3.0 * t * t + 1.0
+        }
+
+        const fn basis_h1(t: f64) -> f64 {
+            -2.0 * t * t * t + 3.0 * t * t
+        }
+
+        const fn basis_h2(t: f64) -> f64 {
+            t * t * t - 2.0 * t * t + t
+        }
+
+        const fn basis_h3(t: f64) -> f64 {
+            t * t * t - t * t
+        }
+
+        Self::new_parametric(
+            color,
+            |t| {
+                basis_h3(t).mul_add(
+                    end_tangent.x,
+                    basis_h2(t).mul_add(
+                        start_tangent.x,
+                        basis_h0(t).mul_add(start.x, basis_h1(t) * end.x),
+                    ),
+                )
+            },
+            |t| {
+                basis_h3(t).mul_add(
+                    end_tangent.y,
+                    basis_h2(t).mul_add(
+                        start_tangent.y,
+                        basis_h0(t).mul_add(start.y, basis_h1(t) * end.y),
+                    ),
+                )
+            },
+            0.0,
+            1.0,
+            num_segments,
+        )
     }
 
     #[must_use]
