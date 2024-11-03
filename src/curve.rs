@@ -137,14 +137,9 @@ impl OneColorCurve {
             start_tangent,
             end,
             end_tangent,
-            num_segments
-        ).try_into()
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn points(&self) -> &[Point] {
-        &self.points
+            num_segments,
+        )
+        .try_into()
     }
 }
 
@@ -223,21 +218,25 @@ impl HermiteArc {
     }
 
     #[inline]
+    #[must_use]
     pub const fn basis_h0(t: f64) -> f64 {
         2.0 * t * t * t - 3.0 * t * t + 1.0
     }
 
     #[inline]
+    #[must_use]
     pub const fn basis_h1(t: f64) -> f64 {
         -2.0 * t * t * t + 3.0 * t * t
     }
 
     #[inline]
+    #[must_use]
     pub const fn basis_h2(t: f64) -> f64 {
         t * t * t - 2.0 * t * t + t
     }
 
     #[inline]
+    #[must_use]
     pub const fn basis_h3(t: f64) -> f64 {
         t * t * t - t * t
     }
@@ -246,6 +245,7 @@ impl HermiteArc {
 impl TryFrom<HermiteArc> for OneColorCurve {
     type Error = WrongInterval;
 
+    #[inline]
     fn try_from(value: HermiteArc) -> Result<Self, Self::Error> {
         Self::new_parametric(
             value.color,

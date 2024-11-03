@@ -4,8 +4,10 @@ use std::borrow::Cow;
 use thiserror::Error;
 
 use crate::{
-    polygon::NotEnoughPointsError, segment::OneColorSegment, Color,
-    GeometricPrimitve, Point, Renderable, Renderer, Shape,
+    curve::{HermiteArc, OneColorCurve, WrongInterval},
+    polygon::NotEnoughPointsError,
+    segment::OneColorSegment,
+    Color, GeometricPrimitve, Point, Renderable, Renderer, Shape,
 };
 
 #[derive(Debug, Clone)]
@@ -44,7 +46,7 @@ impl Figure<'_, OneColorSegment> {
 }
 
 #[non_exhaustive]
-#[derive(Debug, Error, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Error, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum FigureFromPrimitivesError {
     #[error(
         "The geometric primitives are required to touch to create a figure."
@@ -58,10 +60,9 @@ impl<'edges, T> Figure<'edges, T>
 where
     T: GeometricPrimitve + Clone,
 {
-    #[inline]
-    pub fn new_from_primitives(
+    fn check_primitives(
         curves: &'edges [T],
-    ) -> Result<Self, FigureFromPrimitivesError> {
+    ) -> Result<(), FigureFromPrimitivesError> {
         #[expect(
             clippy::indexing_slicing,
             reason = "Curves has to have at least a size of 2 at this point."
@@ -86,6 +87,15 @@ where
                 }
             }
         }
+
+        Ok(())
+    }
+
+    #[inline]
+    pub fn new_from_primitives(
+        curves: &'edges [T],
+    ) -> Result<Self, FigureFromPrimitivesError> {
+        Self::check_primitives(curves)?;
 
         Ok(Self {
             edges: Cow::Borrowed(curves),
@@ -118,6 +128,83 @@ where
         }
 
         Ok(())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Default)]
+pub struct HermiteArcFigureBuilder {
+    arcs: Vec<HermiteArc>,
+    is_closed: bool,
+}
+
+#[non_exhaustive]
+#[derive(Debug, Error, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum HermiteArcFigureBuildError {
+    #[error(transparent)]
+    WrongInterval(#[from] WrongInterval),
+    #[error(transparent)]
+    FigureFromPrimitivesError(#[from] FigureFromPrimitivesError),
+}
+
+impl HermiteArcFigureBuilder {
+    #[inline]
+    #[must_use]
+    pub const fn new() -> Self {
+        Self {
+            arcs: Vec::new(),
+            is_closed: false,
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn add_arc(mut self, arc: HermiteArc) -> Self {
+        self.arcs.push(arc);
+        self
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn close(mut self) -> Self {
+        self.is_closed = true;
+        self
+    }
+
+    #[inline]
+    pub fn build(
+        self,
+    ) -> Result<Figure<'static, OneColorCurve>, HermiteArcFigureBuildError>
+    {
+        let curves: Vec<OneColorCurve> = if self.is_closed {
+            self.arcs
+                .iter()
+                .map(|hermite_arc| (*hermite_arc).try_into())
+                .collect::<Result<_, _>>()?
+        } else {
+            let last_given_arc = self.arcs[self.arcs.len() - 1];
+            let first_given_arc = self.arcs[0];
+            let last_arc = HermiteArc::new(
+                *last_given_arc.color(),
+                *last_given_arc.end(),
+                *last_given_arc.end_tangent(),
+                *first_given_arc.start(),
+                *first_given_arc.start_tangent(),
+                *last_given_arc.num_segments(),
+            );
+            self.arcs
+                .iter()
+                .chain(iter::once(&last_arc))
+                .map(|hermite_arc| (*hermite_arc).try_into())
+                .collect::<Result<_, _>>()?
+        };
+
+        Figure::check_primitives(&curves)?;
+
+        let figure = Figure {
+            edges: Cow::Owned(curves),
+        };
+
+        Ok(figure)
     }
 }
 
