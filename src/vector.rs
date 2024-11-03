@@ -1,9 +1,10 @@
 use core::ops::{Add, Mul, Sub};
 
+#[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Vector2 {
-    x: f64,
-    y: f64,
+    pub x: f64,
+    pub y: f64,
 }
 
 impl Vector2 {
