@@ -60,9 +60,10 @@ impl<'edges, T> Figure<'edges, T>
 where
     T: GeometricPrimitve + Clone,
 {
-    fn check_primitives(
+    #[inline]
+    pub fn new_from_primitives(
         curves: &'edges [T],
-    ) -> Result<(), FigureFromPrimitivesError> {
+    ) -> Result<Self, FigureFromPrimitivesError> {
         #[expect(
             clippy::indexing_slicing,
             reason = "Curves has to have at least a size of 2 at this point."
@@ -87,15 +88,6 @@ where
                 }
             }
         }
-
-        Ok(())
-    }
-
-    #[inline]
-    pub fn new_from_primitives(
-        curves: &'edges [T],
-    ) -> Result<Self, FigureFromPrimitivesError> {
-        Self::check_primitives(curves)?;
 
         Ok(Self {
             edges: Cow::Borrowed(curves),
@@ -134,7 +126,6 @@ where
 #[derive(Debug, Clone, PartialEq, PartialOrd, Default)]
 pub struct HermiteArcFigureBuilder {
     arcs: Vec<HermiteArc>,
-    is_closed: bool,
 }
 
 #[non_exhaustive]
@@ -142,18 +133,15 @@ pub struct HermiteArcFigureBuilder {
 pub enum HermiteArcFigureBuildError {
     #[error(transparent)]
     WrongInterval(#[from] WrongInterval),
-    #[error(transparent)]
-    FigureFromPrimitivesError(#[from] FigureFromPrimitivesError),
+    #[error("At least 2 hermite arcs are required to create a figure.")]
+    NotEnoughArcs,
 }
 
 impl HermiteArcFigureBuilder {
     #[inline]
     #[must_use]
     pub const fn new() -> Self {
-        Self {
-            arcs: Vec::new(),
-            is_closed: false,
-        }
+        Self { arcs: Vec::new() }
     }
 
     #[inline]
@@ -164,24 +152,24 @@ impl HermiteArcFigureBuilder {
     }
 
     #[inline]
-    #[must_use]
-    pub const fn close(mut self) -> Self {
-        self.is_closed = true;
-        self
-    }
-
-    #[inline]
     pub fn build(
         self,
     ) -> Result<Figure<'static, OneColorCurve>, HermiteArcFigureBuildError>
     {
-        let curves: Vec<OneColorCurve> = if self.is_closed {
-            self.arcs
-                .iter()
-                .map(|hermite_arc| (*hermite_arc).try_into())
-                .collect::<Result<_, _>>()?
-        } else {
+        if self.arcs.len() < 2 {
+            return Err(HermiteArcFigureBuildError::NotEnoughArcs);
+        }
+
+        let curves: Vec<OneColorCurve> = {
+            #[expect(
+                clippy::indexing_slicing,
+                reason = "Arcs has to have at least a size of 2 at this point."
+            )]
             let last_given_arc = self.arcs[self.arcs.len() - 1];
+            #[expect(
+                clippy::indexing_slicing,
+                reason = "Arcs has to have at least a size of 2 at this point."
+            )]
             let first_given_arc = self.arcs[0];
             let last_arc = HermiteArc::new(
                 *last_given_arc.color(),
@@ -197,8 +185,6 @@ impl HermiteArcFigureBuilder {
                 .map(|hermite_arc| (*hermite_arc).try_into())
                 .collect::<Result<_, _>>()?
         };
-
-        Figure::check_primitives(&curves)?;
 
         let figure = Figure {
             edges: Cow::Owned(curves),
