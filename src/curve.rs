@@ -131,52 +131,145 @@ impl OneColorCurve {
         end_tangent: Vector2,
         num_segments: Option<i32>,
     ) -> Result<Self, WrongInterval> {
-        const fn basis_h0(t: f64) -> f64 {
-            2.0 * t * t * t - 3.0 * t * t + 1.0
-        }
-
-        const fn basis_h1(t: f64) -> f64 {
-            -2.0 * t * t * t + 3.0 * t * t
-        }
-
-        const fn basis_h2(t: f64) -> f64 {
-            t * t * t - 2.0 * t * t + t
-        }
-
-        const fn basis_h3(t: f64) -> f64 {
-            t * t * t - t * t
-        }
-
-        Self::new_parametric(
+        HermiteArc::new(
             color,
-            |t| {
-                basis_h3(t).mul_add(
-                    end_tangent.x,
-                    basis_h2(t).mul_add(
-                        start_tangent.x,
-                        basis_h0(t).mul_add(start.x, basis_h1(t) * end.x),
-                    ),
-                )
-            },
-            |t| {
-                basis_h3(t).mul_add(
-                    end_tangent.y,
-                    basis_h2(t).mul_add(
-                        start_tangent.y,
-                        basis_h0(t).mul_add(start.y, basis_h1(t) * end.y),
-                    ),
-                )
-            },
-            0.0,
-            1.0,
-            num_segments,
-        )
+            start,
+            start_tangent,
+            end,
+            end_tangent,
+            num_segments
+        ).try_into()
     }
 
     #[must_use]
     #[inline]
     pub fn points(&self) -> &[Point] {
         &self.points
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+pub struct HermiteArc {
+    color: Color,
+    start: Vector2,
+    start_tangent: Vector2,
+    end: Vector2,
+    end_tangent: Vector2,
+    num_segments: Option<i32>,
+}
+
+impl HermiteArc {
+    #[must_use]
+    #[inline]
+    pub const fn new(
+        color: Color,
+        start: Vector2,
+        start_tangent: Vector2,
+        end: Vector2,
+        end_tangent: Vector2,
+        num_segments: Option<i32>,
+    ) -> Self {
+        Self {
+            color,
+            start,
+            start_tangent,
+            end,
+            end_tangent,
+            num_segments,
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn color(&self) -> &Color {
+        &self.color
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn start(&self) -> &Vector2 {
+        &self.start
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn start_tangent(&self) -> &Vector2 {
+        &self.start_tangent
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn end(&self) -> &Vector2 {
+        &self.end
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn end_tangent(&self) -> &Vector2 {
+        &self.end_tangent
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn num_segments(&self) -> &Option<i32> {
+        &self.num_segments
+    }
+
+    #[inline]
+    pub const fn basis_h0(t: f64) -> f64 {
+        2.0 * t * t * t - 3.0 * t * t + 1.0
+    }
+
+    #[inline]
+    pub const fn basis_h1(t: f64) -> f64 {
+        -2.0 * t * t * t + 3.0 * t * t
+    }
+
+    #[inline]
+    pub const fn basis_h2(t: f64) -> f64 {
+        t * t * t - 2.0 * t * t + t
+    }
+
+    #[inline]
+    pub const fn basis_h3(t: f64) -> f64 {
+        t * t * t - t * t
+    }
+}
+
+impl TryFrom<HermiteArc> for OneColorCurve {
+    type Error = WrongInterval;
+
+    fn try_from(value: HermiteArc) -> Result<Self, Self::Error> {
+        Self::new_parametric(
+            value.color,
+            |t| {
+                HermiteArc::basis_h3(t).mul_add(
+                    value.end_tangent.x,
+                    HermiteArc::basis_h2(t).mul_add(
+                        value.start_tangent.x,
+                        HermiteArc::basis_h0(t).mul_add(
+                            value.start.x,
+                            HermiteArc::basis_h1(t) * value.end.x,
+                        ),
+                    ),
+                )
+            },
+            |t| {
+                HermiteArc::basis_h3(t).mul_add(
+                    value.end_tangent.y,
+                    HermiteArc::basis_h2(t).mul_add(
+                        value.start_tangent.y,
+                        HermiteArc::basis_h0(t).mul_add(
+                            value.start.y,
+                            HermiteArc::basis_h1(t) * value.end.y,
+                        ),
+                    ),
+                )
+            },
+            0.0,
+            1.0,
+            value.num_segments,
+        )
     }
 }
 
