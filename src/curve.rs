@@ -148,6 +148,13 @@ impl OneColorCurve {
     }
 }
 
+impl GeometricPrimitve for OneColorCurve {
+    #[inline]
+    fn points(&self) -> &[Point] {
+        &self.points
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct HermiteArc {
     color: Color,
