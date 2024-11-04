@@ -57,6 +57,55 @@ where
     fn edges(&self) -> &[T] {
         &self.edges
     }
+
+    #[inline]
+    #[must_use]
+    #[expect(
+        clippy::indexing_slicing,
+        reason = "Polygon::points() has to have at least a size of 3 at this point."
+    )]
+    fn contains(&self, point: Point) -> bool {
+        // if self.is_convex() {
+        let points = self.vertices();
+
+        self.vertices()
+            .windows(2)
+            .map(|edge| (edge[0], edge[1]))
+            .chain(iter::once((points[points.len() - 1], points[0])))
+            .filter(|&(first_point, last_point)| {
+                (first_point.y > point.y) != (last_point.y > point.y)
+            })
+            .map(|(first_point, last_point)| {
+                let slope = (last_point.x - first_point.x)
+                    / (last_point.y - first_point.y);
+                (point.y - first_point.y).mul_add(slope, first_point.x)
+            })
+            .filter(|&intersect_x| point.x < intersect_x)
+            .count()
+            & 1
+            == 1
+        // } else {
+        //     todo!();
+        // }
+    }
+
+    #[inline]
+    #[must_use]
+    fn is_convex(&self) -> bool {
+        todo!();
+    }
+
+    #[inline]
+    #[must_use]
+    fn area(&self) -> f64 {
+        todo!();
+    }
+
+    #[inline]
+    #[must_use]
+    fn perimeter(&self) -> f64 {
+        todo!();
+    }
 }
 
 #[non_exhaustive]

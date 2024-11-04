@@ -104,6 +104,31 @@ where
     fn edges(&self) -> &[T] {
         &self.edges
     }
+
+    #[inline]
+    #[must_use]
+    fn contains(&self, point: Point) -> bool {
+        let _ = point;
+        todo!();
+    }
+
+    #[inline]
+    #[must_use]
+    fn is_convex(&self) -> bool {
+        todo!();
+    }
+
+    #[inline]
+    #[must_use]
+    fn area(&self) -> f64 {
+        todo!();
+    }
+
+    #[inline]
+    #[must_use]
+    fn perimeter(&self) -> f64 {
+        todo!();
+    }
 }
 
 impl<T, R> Renderable<R> for Figure<'_, T>

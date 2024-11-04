@@ -1,6 +1,5 @@
-use core::{
-    iter,
-    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
+use core::ops::{
+    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign,
 };
 
 pub mod curve;
@@ -88,32 +87,13 @@ where
             .collect()
     }
 
-    #[must_use]
-    #[inline]
-    #[expect(
-        clippy::indexing_slicing,
-        reason = "Polygon::points() has to have at least a size of 3 at this point."
-    )]
-    fn contains(&self, point: Point) -> bool {
-        let points = self.vertices();
+    fn contains(&self, point: Point) -> bool;
 
-        self.vertices()
-            .windows(2)
-            .map(|edge| (edge[0], edge[1]))
-            .chain(iter::once((points[points.len() - 1], points[0])))
-            .filter(|&(first_point, last_point)| {
-                (first_point.y > point.y) != (last_point.y > point.y)
-            })
-            .map(|(first_point, last_point)| {
-                let slope = (last_point.x - first_point.x)
-                    / (last_point.y - first_point.y);
-                (point.y - first_point.y).mul_add(slope, first_point.x)
-            })
-            .filter(|&intersect_x| point.x < intersect_x)
-            .count()
-            & 1
-            == 1
-    }
+    fn is_convex(&self) -> bool;
+
+    fn area(&self) -> f64;
+
+    fn perimeter(&self) -> f64;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
