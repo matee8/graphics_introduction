@@ -353,13 +353,13 @@ mod tests {
         )
         .unwrap();
 
-        let first = curve.points.first().unwrap();
+        let first = curve.first_point();
         assert!(
             (first.x - start.x).abs() < ERROR_MARGIN
                 && (first.y - start.y).abs() < ERROR_MARGIN
         );
 
-        let last = curve.points.iter().last().unwrap();
+        let last = curve.last_point();
         assert!(
             (last.x - end.x).abs() < ERROR_MARGIN
                 && (last.y - end.y).abs() < ERROR_MARGIN
