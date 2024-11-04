@@ -6,8 +6,8 @@ edition = "2021"
 repository = "https://github.com/matee8/graphics_introduction.git"
 readme = "README.md"
 
-categories = ["graphics", "rendering", "rendering::engine"]
-description = "Introduction to computer graphics assignment"
+categories = ["graphics", "rendering"]
+description = "Geometric library with generic backend."
 keywords = ["graphics", "rendering"]
 
 [lib]
@@ -23,6 +23,10 @@ required-features = ["sdl2"]
 
 [[example]]
 name = "epicycloid"
+required-features = ["sdl2"]
+
+[[example]]
+name = "hermite_builder"
 required-features = ["sdl2"]
 
 [profile.dev]
