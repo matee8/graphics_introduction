@@ -319,7 +319,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{curve::OneColorCurve, Color, Point, ERROR_MARGIN};
+    use crate::{
+        curve::OneColorCurve, vector::Vector2, Color, GeometricPrimitve, Point,
+        ERROR_MARGIN,
+    };
 
     #[test]
     fn new_parametric_curve_is_ok() {
@@ -368,7 +371,52 @@ mod tests {
         let curve =
             OneColorCurve::new_implicit(|x, _| x, Color::RED, 1000, 1000);
 
-        assert_eq!(curve.points.first(), Some(&Point::new(0.0, 0.0)));
-        assert_eq!(curve.points.iter().last(), Some(&Point::new(0.0, 999.0)));
+        assert_eq!(curve.first_point(), Point::new(0.0, 0.0));
+        assert_eq!(curve.last_point(), Point::new(0.0, 999.0));
+    }
+
+    #[test]
+    fn new_curve_from_hermite_arc_is_ok() {
+        let start = Vector2::new(0.0, 0.0);
+        let end = Vector2::new(0.0, 100.0);
+
+        let curve = OneColorCurve::new_hermite_arc(
+            Color::RED,
+            start,
+            Vector2::new(10.0, 10.0) - start,
+            end,
+            Vector2::new(10.0, 10.0) - end,
+            None,
+        );
+
+        assert!(curve.is_ok());
+    }
+
+    #[test]
+    fn new_curve_from_hermite_arc_has_correct_endpoints() {
+        let start = Vector2::new(0.0, 0.0);
+        let end = Vector2::new(0.0, 100.0);
+
+        let curve = OneColorCurve::new_hermite_arc(
+            Color::RED,
+            start,
+            Vector2::new(10.0, 10.0) - start,
+            end,
+            Vector2::new(10.0, 10.0) - end,
+            None,
+        )
+        .unwrap();
+
+        let first = curve.first_point();
+        assert!(
+            (first.x - start.x).abs() < ERROR_MARGIN
+                && (first.y - start.y).abs() < ERROR_MARGIN
+        );
+
+        let last = curve.last_point();
+        assert!(
+            (last.x - end.x).abs() < ERROR_MARGIN
+                && (last.y - end.y).abs() < ERROR_MARGIN
+        );
     }
 }
