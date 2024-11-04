@@ -1,5 +1,7 @@
 use core::ops::{Add, Mul, Sub};
 
+use crate::Point;
+
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Vector2 {
@@ -12,6 +14,26 @@ impl Vector2 {
     #[must_use]
     pub const fn new(x: f64, y: f64) -> Self {
         Self { x, y }
+    }
+}
+
+impl From<Vector2> for Point {
+    #[inline]
+    fn from(value: Vector2) -> Self {
+        Self {
+            x: value.x,
+            y: value.y,
+        }
+    }
+}
+
+impl From<Point> for Vector2 {
+    #[inline]
+    fn from(value: Point) -> Self {
+        Self {
+            x: value.x,
+            y: value.y,
+        }
     }
 }
 
