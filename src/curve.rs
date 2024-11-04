@@ -125,9 +125,9 @@ impl OneColorCurve {
     #[inline]
     pub fn new_hermite_arc(
         color: Color,
-        start: Vector2,
+        start: Point,
         start_tangent: Vector2,
-        end: Vector2,
+        end: Point,
         end_tangent: Vector2,
         num_segments: Option<i32>,
     ) -> Result<Self, WrongInterval> {
@@ -153,9 +153,9 @@ impl GeometricPrimitve for OneColorCurve {
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct HermiteArc {
     color: Color,
-    start: Vector2,
+    start: Point,
     start_tangent: Vector2,
-    end: Vector2,
+    end: Point,
     end_tangent: Vector2,
     num_segments: Option<i32>,
 }
@@ -165,9 +165,9 @@ impl HermiteArc {
     #[inline]
     pub const fn new(
         color: Color,
-        start: Vector2,
+        start: Point,
         start_tangent: Vector2,
-        end: Vector2,
+        end: Point,
         end_tangent: Vector2,
         num_segments: Option<i32>,
     ) -> Self {
@@ -189,7 +189,7 @@ impl HermiteArc {
 
     #[inline]
     #[must_use]
-    pub const fn start(&self) -> &Vector2 {
+    pub const fn start(&self) -> &Point {
         &self.start
     }
 
@@ -201,7 +201,7 @@ impl HermiteArc {
 
     #[inline]
     #[must_use]
-    pub const fn end(&self) -> &Vector2 {
+    pub const fn end(&self) -> &Point {
         &self.end
     }
 
@@ -377,15 +377,15 @@ mod tests {
 
     #[test]
     fn new_curve_from_hermite_arc_is_ok() {
-        let start = Vector2::new(0.0, 0.0);
-        let end = Vector2::new(0.0, 100.0);
+        let start = Point::new(0.0, 0.0);
+        let end = Point::new(0.0, 100.0);
 
         let curve = OneColorCurve::new_hermite_arc(
             Color::RED,
             start,
-            Vector2::new(10.0, 10.0) - start,
+            Vector2::new(10.0, 10.0) - start.into(),
             end,
-            Vector2::new(10.0, 10.0) - end,
+            Vector2::new(10.0, 10.0) - end.into(),
             None,
         );
 
@@ -394,15 +394,15 @@ mod tests {
 
     #[test]
     fn new_curve_from_hermite_arc_has_correct_endpoints() {
-        let start = Vector2::new(0.0, 0.0);
-        let end = Vector2::new(0.0, 100.0);
+        let start = Point::new(0.0, 0.0);
+        let end = Point::new(0.0, 100.0);
 
         let curve = OneColorCurve::new_hermite_arc(
             Color::RED,
             start,
-            Vector2::new(10.0, 10.0) - start,
+            Vector2::new(10.0, 10.0) - start.into(),
             end,
-            Vector2::new(10.0, 10.0) - end,
+            Vector2::new(10.0, 10.0) - end.into(),
             None,
         )
         .unwrap();
