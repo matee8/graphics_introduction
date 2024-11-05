@@ -17,6 +17,30 @@ impl Vector2 {
     }
 }
 
+impl From<(f64, f64)> for Vector2 {
+    fn from(value: (f64, f64)) -> Self {
+        Self {
+            x: value.0,
+            y: value.1,
+        }
+    }
+}
+
+impl From<Vector2> for (f64, f64) {
+    fn from(value: Vector2) -> Self {
+        (value.x, value.y)
+    }
+}
+
+impl From<(i32, i32)> for Vector2 {
+    fn from(value: (i32, i32)) -> Self {
+        Self {
+            x: f64::from(value.0),
+            y: f64::from(value.1),
+        }
+    }
+}
+
 impl From<Vector2> for Point {
     #[inline]
     fn from(value: Vector2) -> Self {
