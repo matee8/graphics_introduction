@@ -25,10 +25,6 @@ required-features = ["sdl2"]
 name = "epicycloid"
 required-features = ["sdl2"]
 
-[[example]]
-name = "hermite_builder"
-required-features = ["sdl2"]
-
 [profile.dev]
 opt-level = 1
 
