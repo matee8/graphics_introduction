@@ -19,7 +19,7 @@ fn main() {
     });
 
     let window = vid_subsys
-        .window("Happy anniversary!", WIDTH, HEIGHT)
+        .window("Heart example", WIDTH, HEIGHT)
         .resizable()
         .build()
         .unwrap_or_else(|_| {
