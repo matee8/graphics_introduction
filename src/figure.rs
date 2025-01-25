@@ -7,13 +7,13 @@ use crate::{
     curve::{HermiteArc, OneColorCurve, WrongInterval},
     polygon::NotEnoughPointsError,
     segment::OneColorSegment,
-    Color, GeometricPrimitve, Point, Renderable, Renderer, Shape,
+    Color, GeometricPrimitive, Point, Renderable, Renderer, Shape,
 };
 
 #[derive(Debug, Clone)]
 pub struct Figure<'edges, T>
 where
-    T: GeometricPrimitve + Clone,
+    T: GeometricPrimitive + Clone,
 {
     edges: Cow<'edges, [T]>,
 }
@@ -58,7 +58,7 @@ pub enum FigureFromPrimitivesError {
 
 impl<'edges, T> Figure<'edges, T>
 where
-    T: GeometricPrimitve + Clone,
+    T: GeometricPrimitive + Clone,
 {
     #[inline]
     pub fn new_from_primitives(
@@ -97,7 +97,7 @@ where
 
 impl<T> Shape<T> for Figure<'_, T>
 where
-    T: GeometricPrimitve + Clone,
+    T: GeometricPrimitive + Clone,
 {
     #[inline]
     #[must_use]
@@ -133,7 +133,7 @@ where
 
 impl<T, R> Renderable<R> for Figure<'_, T>
 where
-    T: GeometricPrimitve + Clone + Renderable<R>,
+    T: GeometricPrimitive + Clone + Renderable<R>,
     R: Renderer,
 {
     type Error = T::Error;

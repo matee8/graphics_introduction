@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 use crate::{
-    segment::OneColorSegment, vector::Vector2, Color, GeometricPrimitve, Point,
+    segment::OneColorSegment, vector::Vector2, Color, GeometricPrimitive, Point,
     Renderable, Renderer, SMALL_ERROR_MARGIN,
 };
 
@@ -96,7 +96,7 @@ impl OneColorCurve {
         color: Color,
     ) -> Result<Self, CurveFromSegmentsError>
     where
-        T: GeometricPrimitve + Clone,
+        T: GeometricPrimitive + Clone,
     {
         if segments.len() < 2 {
             return Err(CurveFromSegmentsError::NotEnough);
@@ -143,7 +143,7 @@ impl OneColorCurve {
     }
 }
 
-impl GeometricPrimitve for OneColorCurve {
+impl GeometricPrimitive for OneColorCurve {
     #[inline]
     fn points(&self) -> &[Point] {
         &self.points
@@ -320,7 +320,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        curve::OneColorCurve, vector::Vector2, Color, GeometricPrimitve, Point,
+        curve::OneColorCurve, vector::Vector2, Color, GeometricPrimitive, Point,
         ERROR_MARGIN,
     };
 

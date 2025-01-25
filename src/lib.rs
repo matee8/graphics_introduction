@@ -41,7 +41,7 @@ where
     fn render(&self, renderer: &mut T) -> Result<(), Self::Error>;
 }
 
-pub trait GeometricPrimitve {
+pub trait GeometricPrimitive {
     fn points(&self) -> &[Point];
 
     #[must_use]
@@ -73,7 +73,7 @@ pub trait GeometricPrimitve {
 
 pub trait Shape<T>
 where
-    T: GeometricPrimitve,
+    T: GeometricPrimitive,
 {
     #[must_use]
     fn edges(&self) -> &[T];
@@ -83,7 +83,7 @@ where
     fn vertices(&self) -> Vec<Point> {
         self.edges()
             .iter()
-            .map(GeometricPrimitve::first_point)
+            .map(GeometricPrimitive::first_point)
             .collect()
     }
 

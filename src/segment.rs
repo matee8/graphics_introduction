@@ -3,11 +3,11 @@ use core::{iter, mem};
 use thiserror::Error;
 
 use crate::{
-    polygon::Polygon, Color, GeometricPrimitve, Point, Renderable, Renderer,
+    polygon::Polygon, Color, GeometricPrimitive, Point, Renderable, Renderer,
     Shape, ERROR_MARGIN,
 };
 
-pub trait LineSegment: GeometricPrimitve {}
+pub trait LineSegment: GeometricPrimitive {}
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Line {
@@ -362,7 +362,7 @@ where
     }
 }
 
-impl GeometricPrimitve for OneColorSegment {
+impl GeometricPrimitive for OneColorSegment {
     #[inline]
     fn points(&self) -> &[Point] {
         &self.points
@@ -374,7 +374,7 @@ impl LineSegment for OneColorSegment {}
 #[cfg(test)]
 mod tests {
     use crate::{
-        segment::{GeometricPrimitve, Line, OneColorSegment},
+        segment::{GeometricPrimitive, Line, OneColorSegment},
         Color,
     };
 
