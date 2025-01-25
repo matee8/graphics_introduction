@@ -1,7 +1,7 @@
 use graphics_introduction::{
     curve::{CurveFromSegmentsError, OneColorCurve},
     segment::OneColorSegment,
-    Color, GeometricPrimitive,
+    Color, GeometricPrimitive as _,
 };
 
 #[test]
