@@ -5,6 +5,7 @@ edition = "2021"
 
 repository = "https://github.com/matee8/graphics_introduction.git"
 readme = "README.md"
+license = "LICENSE"
 authors = ["matee8 <molnarmatenorbert@gmail.com>"]
 
 categories = ["graphics", "rendering"]
