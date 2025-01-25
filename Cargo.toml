@@ -5,6 +5,7 @@ edition = "2021"
 
 repository = "https://github.com/matee8/graphics_introduction.git"
 readme = "README.md"
+authors = ["matee8 <molnarmatenorbert@gmail.com>"]
 
 categories = ["graphics", "rendering"]
 description = "Geometric library with generic backend."
