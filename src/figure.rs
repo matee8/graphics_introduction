@@ -107,9 +107,37 @@ where
 
     #[inline]
     #[must_use]
+    #[expect(
+        clippy::integer_division_remainder_used,
+        reason = "Odd/even check using modulo is clear and explicit."
+    )]
     fn contains(&self, point: Point) -> bool {
-        let _ = point;
-        todo!();
+        let vertices: Vec<Point> = self
+            .edges()
+            .iter()
+            .map(GeometricPrimitive::first_point)
+            .collect();
+        #[expect(
+            clippy::indexing_slicing,
+            reason = "Safe because windows(2) guarantees 2 elements."
+        )]
+        #[expect(
+            clippy::unwrap_used,
+            reason = "Safe because Figure requires at least 2 edges."
+        )]
+        let count = vertices
+            .windows(2)
+            .map(|window| (window[0], window[1]))
+            .chain(iter::once((*vertices.last().unwrap(), vertices[0])))
+            .filter(|&(p1, p2)| (p1.y > point.y) != (p2.y > point.y))
+            .map(|(p1, p2)| {
+                let t = (point.y - p1.y) / (p2.y - p1.y);
+                t.mul_add(p2.x - p1.x, p1.x)
+            })
+            .filter(|&x| point.x < x)
+            .count();
+
+        count % 2 == 1
     }
 }
 
@@ -205,7 +233,9 @@ impl HermiteArcFigureBuilder {
 mod tests {
     use core::iter;
 
-    use crate::{figure::Figure, segment::OneColorSegment, Color, Shape};
+    use crate::{
+        figure::Figure, segment::OneColorSegment, Color, Point, Shape as _,
+    };
 
     #[test]
     fn new_figure_has_correct_vertices() {
@@ -241,5 +271,34 @@ mod tests {
         for (i, edge) in polygon.edges().iter().enumerate() {
             assert_eq!(*edge, segments[i]);
         }
+    }
+
+    #[test]
+    fn figure_contains_inside_point() {
+        let points = vec![
+            Point::new(0.0, 0.0),
+            Point::new(0.0, 5.0),
+            Point::new(5.0, 5.0),
+            Point::new(5.0, 0.0),
+        ];
+        let figure = Figure::from_points(&points, Color::RED).unwrap();
+
+        assert!(figure.contains(Point::new(2.0, 2.0)));
+        assert!(figure.contains(Point::new(0.0, 2.0)));
+        assert!(figure.contains(Point::new(0.0, 0.0)));
+    }
+
+    #[test]
+    fn figure_doesnt_contain_outside_point() {
+        let points = vec![
+            Point::new(0.0, 0.0),
+            Point::new(0.0, 5.0),
+            Point::new(5.0, 5.0),
+            Point::new(5.0, 0.0),
+        ];
+        let figure = Figure::from_points(&points, Color::RED).unwrap();
+
+        assert!(!figure.contains(Point::new(6.0, 3.0)));
+        assert!(!figure.contains(Point::new(3.0, 6.0)));
     }
 }
