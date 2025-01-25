@@ -1,15 +1,15 @@
 [package]
-name = "graphics_introduction"
+name = "figura"
 version = "0.1.0"
 edition = "2021"
 
-repository = "https://github.com/matee8/graphics_introduction.git"
+repository = "https://github.com/matee8/figura.git"
 readme = "README.md"
 license = "LICENSE"
 authors = ["matee8 <molnarmatenorbert@gmail.com>"]
 
 categories = ["graphics", "rendering"]
-description = "Geometric library with generic backend."
+description = "2D geometric primitives with backend-agnostic rendering."
 keywords = ["graphics", "rendering"]
 
 [lib]

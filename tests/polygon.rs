@@ -1,6 +1,6 @@
 use core::iter;
 
-use graphics_introduction::{
+use figura::{
     polygon::{Polygon, PolygonFromSegmentsError},
     segment::OneColorSegment,
     Color, GeometricPrimitive as _, Point, Shape as _,

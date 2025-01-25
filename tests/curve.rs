@@ -1,4 +1,4 @@
-use graphics_introduction::{
+use figura::{
     curve::{CurveFromSegmentsError, OneColorCurve},
     segment::OneColorSegment,
     Color, GeometricPrimitive as _,
