@@ -372,7 +372,7 @@ impl LineSegment for OneColorSegment {}
 #[cfg(test)]
 mod tests {
     use crate::{
-        segment::{GeometricPrimitive, Line, OneColorSegment},
+        segment::{GeometricPrimitive as _, Line, OneColorSegment},
         Color,
     };
 

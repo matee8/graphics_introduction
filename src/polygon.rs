@@ -145,9 +145,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::iter;
+    use core::iter;
 
-    use crate::{polygon::Polygon, segment::OneColorSegment, Color, Shape};
+    use crate::{
+        polygon::Polygon, segment::OneColorSegment, Color, Shape as _,
+    };
 
     #[test]
     fn new_polygon_has_correct_vertices() {
@@ -200,7 +202,7 @@ mod tests {
 
         let point = (150, 85).into();
 
-        assert!(!polygon.contains(point))
+        assert!(!polygon.contains(point));
     }
 
     #[test]
@@ -213,6 +215,6 @@ mod tests {
 
         let point = (3, 3).into();
 
-        assert!(polygon.contains(point))
+        assert!(polygon.contains(point));
     }
 }

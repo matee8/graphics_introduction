@@ -320,7 +320,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        curve::OneColorCurve, vector::Vector2, Color, GeometricPrimitive,
+        curve::OneColorCurve, vector::Vector2, Color, GeometricPrimitive as _,
         Point, ERROR_MARGIN,
     };
 
