@@ -9,7 +9,7 @@ fn curve_from_one_segment_is_err() {
     let segment =
         OneColorSegment::new((100, 100).into(), (100, 200).into(), Color::RED);
 
-    let curve = OneColorCurve::new_from_segments(&[segment], Color::RED);
+    let curve = OneColorCurve::from_segments(&[segment], Color::RED);
 
     assert!(curve.is_err());
     assert_eq!(curve.unwrap_err(), CurveFromSegmentsError::NotEnough);
@@ -23,7 +23,7 @@ fn curve_from_not_touching_segments_is_err() {
         OneColorSegment::new((300, 100).into(), (300, 200).into(), Color::RED),
     ];
 
-    let curve = OneColorCurve::new_from_segments(&segments, Color::RED);
+    let curve = OneColorCurve::from_segments(&segments, Color::RED);
 
     assert!(curve.is_err());
     assert_eq!(curve.unwrap_err(), CurveFromSegmentsError::NotTouching);
@@ -38,7 +38,7 @@ fn curve_from_four_touching_segments_is_ok() {
         OneColorSegment::new((200, 100).into(), (100, 100).into(), Color::RED),
     ];
 
-    let curve = OneColorCurve::new_from_segments(&segments, Color::RED);
+    let curve = OneColorCurve::from_segments(&segments, Color::RED);
 
     assert!(curve.is_ok());
 }
@@ -58,8 +58,7 @@ fn curve_from_four_touching_segments_has_correct_start_and_end_points() {
         .map(|(start, end)| OneColorSegment::new(start, end, Color::RED))
         .collect();
 
-    let curve =
-        OneColorCurve::new_from_segments(&segments, Color::RED).unwrap();
+    let curve = OneColorCurve::from_segments(&segments, Color::RED).unwrap();
 
     assert_eq!(curve.points().first(), points.first());
     assert_eq!(curve.points().iter().last(), points.iter().last());

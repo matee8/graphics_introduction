@@ -20,7 +20,7 @@ where
 
 impl Figure<'_, OneColorSegment> {
     #[inline]
-    pub fn new_from_points(
+    pub fn from_points(
         points: &[Point],
         color: Color,
     ) -> Result<Self, NotEnoughPointsError> {
@@ -61,7 +61,7 @@ where
     T: GeometricPrimitive + Clone,
 {
     #[inline]
-    pub fn new_from_primitives(
+    pub fn from_primitives(
         curves: &'edges [T],
     ) -> Result<Self, FigureFromPrimitivesError> {
         #[expect(
@@ -215,7 +215,7 @@ mod tests {
             (200, 200).into(),
             (200, 100).into(),
         ];
-        let polygon = Figure::new_from_points(&points, Color::RED).unwrap();
+        let polygon = Figure::from_points(&points, Color::RED).unwrap();
 
         assert_eq!(polygon.vertices(), points);
     }
@@ -229,7 +229,7 @@ mod tests {
             (200, 100).into(),
         ];
         let color = Color::RED;
-        let polygon = Figure::new_from_points(&points, color).unwrap();
+        let polygon = Figure::from_points(&points, color).unwrap();
 
         let segments: Vec<OneColorSegment> = points
             .windows(2)

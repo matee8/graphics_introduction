@@ -25,7 +25,7 @@ impl Line {
 
     #[must_use]
     #[inline]
-    pub fn new_from_points(start: Point, end: Point) -> Self {
+    pub fn from_points(start: Point, end: Point) -> Self {
         Self::new(
             end.y - start.y,
             start.x - end.x,
@@ -229,7 +229,7 @@ impl OneColorSegment {
             }
         }
 
-        let line = Line::new_from_points(start, end);
+        let line = Line::from_points(start, end);
 
         let signums: Vec<i8> = polygon
             .vertices()
@@ -270,10 +270,8 @@ impl OneColorSegment {
             .zip(polygon.edges())
             .filter(|&(signum, _)| (signum.0 != signum.1))
             .map(|(_, edge)| {
-                let edge_line = Line::new_from_points(
-                    edge.first_point(),
-                    edge.last_point(),
-                );
+                let edge_line =
+                    Line::from_points(edge.first_point(), edge.last_point());
 
                 line.intersection(&edge_line)
             })
@@ -394,7 +392,7 @@ mod tests {
         let start = (100, 100).into();
         let end = (100, 200).into();
 
-        let line = Line::new_from_points(start, end);
+        let line = Line::from_points(start, end);
         let segment_line: Line =
             OneColorSegment::new(start, end, Color::RED).into();
 

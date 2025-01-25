@@ -100,7 +100,7 @@ where
     T: LineSegment + Clone,
 {
     #[inline]
-    pub fn new_from_segments(
+    pub fn from_segments(
         segments: &'edges [T],
     ) -> Result<Self, PolygonFromSegmentsError> {
         if segments.len() < 3 {

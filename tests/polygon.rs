@@ -12,7 +12,7 @@ fn polygon_from_one_segment_is_err() {
         OneColorSegment::new((100, 100).into(), (200, 200).into(), Color::RED);
 
     let segments = &[segment];
-    let polygon = Polygon::new_from_segments(segments);
+    let polygon = Polygon::from_segments(segments);
 
     assert!(polygon.is_err());
     assert_eq!(polygon.unwrap_err(), PolygonFromSegmentsError::NotEnough);
@@ -26,7 +26,7 @@ fn polygon_from_not_touching_segment_is_err() {
         OneColorSegment::new((300, 100).into(), (300, 200).into(), Color::RED),
     ];
 
-    let polygon = Polygon::new_from_segments(&segments);
+    let polygon = Polygon::from_segments(&segments);
 
     assert!(polygon.is_err());
     assert_eq!(polygon.unwrap_err(), PolygonFromSegmentsError::NotTouching);
@@ -41,7 +41,7 @@ fn polygon_from_four_touching_segments_is_ok() {
         OneColorSegment::new((200, 100).into(), (100, 100).into(), Color::RED),
     ];
 
-    let polygon = Polygon::new_from_segments(&segments);
+    let polygon = Polygon::from_segments(&segments);
 
     assert!(polygon.is_ok());
 }
@@ -62,7 +62,7 @@ fn polygon_from_four_touching_segments_has_correct_points() {
         .map(|(start, end)| OneColorSegment::new(start, end, Color::RED))
         .collect();
 
-    let polygon = Polygon::new_from_segments(&segments).unwrap();
+    let polygon = Polygon::from_segments(&segments).unwrap();
 
     assert_eq!(polygon.vertices(), points);
 }

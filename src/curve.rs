@@ -1,8 +1,8 @@
 use thiserror::Error;
 
 use crate::{
-    segment::OneColorSegment, vector::Vector2, Color, GeometricPrimitive, Point,
-    Renderable, Renderer, SMALL_ERROR_MARGIN,
+    segment::OneColorSegment, vector::Vector2, Color, GeometricPrimitive,
+    Point, Renderable, Renderer, SMALL_ERROR_MARGIN,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -91,7 +91,7 @@ impl OneColorCurve {
     }
 
     #[inline]
-    pub fn new_from_segments<T>(
+    pub fn from_segments<T>(
         segments: &[T],
         color: Color,
     ) -> Result<Self, CurveFromSegmentsError>
@@ -320,8 +320,8 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        curve::OneColorCurve, vector::Vector2, Color, GeometricPrimitive, Point,
-        ERROR_MARGIN,
+        curve::OneColorCurve, vector::Vector2, Color, GeometricPrimitive,
+        Point, ERROR_MARGIN,
     };
 
     #[test]
