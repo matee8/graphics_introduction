@@ -88,12 +88,6 @@ where
     }
 
     fn contains(&self, point: Point) -> bool;
-
-    fn is_convex(&self) -> bool;
-
-    fn area(&self) -> f64;
-
-    fn perimeter(&self) -> f64;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]

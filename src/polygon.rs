@@ -65,7 +65,6 @@ where
         reason = "Polygon::points() has to have at least a size of 3 at this point."
     )]
     fn contains(&self, point: Point) -> bool {
-        // if self.is_convex() {
         let points = self.vertices();
 
         self.vertices()
@@ -84,27 +83,6 @@ where
             .count()
             & 1
             == 1
-        // } else {
-        //     todo!();
-        // }
-    }
-
-    #[inline]
-    #[must_use]
-    fn is_convex(&self) -> bool {
-        todo!();
-    }
-
-    #[inline]
-    #[must_use]
-    fn area(&self) -> f64 {
-        todo!();
-    }
-
-    #[inline]
-    #[must_use]
-    fn perimeter(&self) -> f64 {
-        todo!();
     }
 }
 
